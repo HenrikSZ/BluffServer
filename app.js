@@ -36,11 +36,12 @@ app.use('/player', async (req, res, next) => {
 })
 
 app.post('/join', (req, res) => {
-    res.send('Success')
-    //res.render('join', { username: req.query.username })
+    // TODO action of joining to game
+    res.send(JSON.stringify({ status: 0 }))
 })
 app.post('/create', (req, res) => {
-    //res.render('create', { username: req.query.username })
+    // TODO action of joining to game
+    res.send(JSON.stringify({ status: 0 }))
 })
 
 app.get('/', (req, res) => {
