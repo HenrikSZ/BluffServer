@@ -1,0 +1,36 @@
+extends layout.pug
+
+block scripts
+    script(src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js")
+    script(src="/scripts/login.js")
+
+block content
+    div(x-data="login()", x-init=`username = '${username}'`)
+        div(class='jumbotron text-center')
+            h1 Create or Join a Game
+        
+        div(class="container", x-show="showPage === 'set-username'")
+            h4 1. Set Username
+            div(class="row")
+                div(class="col-sm-2 m-2") Username
+                input(class="col-sm-2 m-2", type="text", x-model="username")
+            div(class="row text-center")
+                button(class="btn btn-primary col-sm-2 m-2", @click="showPage = 'create-game'") Create Game
+                button(class="btn btn-primary col-sm-2 m-2", @click="showPage = 'join-game'") Join Game
+        
+        div(class="container", x-show="showPage === 'create-game'")
+            h4 2. Create Game as 
+            span(x-text="username")
+            button(class="btn btn-warning col-sm-2 m-2", @click="showPage = 'set-username'") Back
+            button(class="btn btn-success col-sm-2 m-2", @click="createGame()") Create
+        div(class="container" x-show="showPage === 'join-game'")
+            h4 2. Join Game as 
+            span(x-text="username")
+            div(class="row")
+                div(class="col-sm-2 m-2") Game name
+                input(class="col-sm-2 m-2", type="text", x-model="gameId")
+            button(class="btn btn-warning col-sm-2 m-2", @click="showPage = 'set-username'") Back
+            button(class="btn btn-success col-sm-2 m-2", @click="joinGame()") Join
+            
+            
+        div If you choose to create or join a game you agree to have a cookie set on your browser
