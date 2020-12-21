@@ -3,33 +3,38 @@ const Game = require('./Game.js')
 
 class Player {
     static async createFromExisting(req, asyncMysql) {
-        const player = new Player()
+        let player
 
         if (!req.cookies.token) {
             throw new Error('Cannot load existing player without token')
             // TODO error handling
         }
-        player.token = req.cookies.token
 
         if (req.body.username) {
             await asyncMysql.query(`UPDATE players SET username = ${asyncMysql.escape(req.body.username)} WHERE token = ${asyncMysql.escape(req.cookies.token)}`)
-            let user = await asyncMysql.query(`SELECT id, game FROM players WHERE TOKEN = ${asyncMysql.escape(req.cookies.token)}`)[0]
-            
-            player.username = req.body.username
-            player.id = user.id
+        }
+        
+        player = this.createFromToken(req.cookies.token, asyncMysql)
 
-            if (user.game) {
-                player.game = await Game.createFromId(user.game, asyncMysql)
-            }
-        } else {
-            let user = (await asyncMysql.query(`SELECT username, id, game FROM players WHERE token = ${asyncMysql.escape(req.cookies.token)}`))[0]
+        return player
+    }
 
-            player.username = user.username
-            player.id = user.id
+    static async createFromToken(token, asyncMysql) {
+        const player = new Player()
 
-            if (user.game) {
-                player.game = await Game.createFromId(user.game, asyncMysql)
-            }
+        let user = (await asyncMysql.query(`SELECT username, id, game FROM players WHERE token = ${asyncMysql.escape(token)}`))[0]
+
+        if (!user) {
+            // invalid token
+            // TODO error handling
+        }
+
+        player.username = user.username
+        player.token = token
+        player.id = user.id
+
+        if (user.game) {
+            player.game = await Game.createFromId(user.game, asyncMysql)
         }
 
         return player
@@ -53,7 +58,7 @@ class Player {
         res.cookie('token', player.token, { maxAge: 86400000 })
 
         return player
-    } 
+    }
 
     async join(game, asyncMysql) {
         this.game = game

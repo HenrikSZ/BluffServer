@@ -9,4 +9,6 @@ block content
     div(x-data="game()", x-init="connectSocketIO()" class="mt-5")
         h1 In Game as #{player.username}
         h4= player.game.inviteCode
+        template(x-for="item in players" :key="item")
+            div(x-text="item")
         button(class="btn btn-warning m-2", @click="leaveGame()") Leave

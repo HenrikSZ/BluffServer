@@ -8,7 +8,7 @@ function login() {
     return {
         showPage: 'set-username',
         username: '',
-        gameId: '',
+        inviteCode: '',
         createPlayer(next) {
             const xhttp = new XMLHttpRequest()
             xhttp.onreadystatechange = function() {
@@ -44,13 +44,13 @@ function login() {
             xhttp.setRequestHeader('Content-type', 'application/json')
             xhttp.send(JSON.stringify(
                 {
-                    gameId: this.gameId
+                    inviteCode: this.inviteCode
                 }
             ))
         },
         createGame(next) {
             if (!document.cookie.match(/^(.*;)?\s*token\s*=\s*[^;]+(.*)?$/)) {
-                this.createPlayer(this.joinGame)
+                this.createPlayer(this.createGame)
             }
 
             console.log(`Creating game as ${this.username}`)

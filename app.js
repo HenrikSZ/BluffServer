@@ -7,6 +7,7 @@ const asyncMysql = require('./dbConnection.js')
 
 const Player = require('./player.js')
 const Game = require('./game.js')
+const { userInfo } = require('os')
 
 const app = express()
 const port = 3000
@@ -25,6 +26,14 @@ app.use(async (req, res, next) => {
 app.post('/player/create', async (req, res) => {
     await Player.createNew(req, res, asyncMysql)
     res.send({ status: 0 })
+})
+
+app.use('/game', async (req, res, next) => {
+    if (!req.player) {
+        res.redirect('/')
+    } else {
+        next()
+    }
 })
 
 app.post('/game/join', async (req, res) => {
@@ -74,8 +83,14 @@ const server = http.createServer(app)
 const io = socketio(server)
 
 io.on('connection', (socket) => {
-    console.log('a user connected')
-    socket.emit('event', 'Hello, world!')
+    socket.on('token', async (data) => {
+        let player = await Player.createFromToken(data, asyncMysql)
+
+        if (player.game) {
+            socket.join(player.game.id)
+            io.to(player.game.id).emit('playerList', await player.game.getPlayerNameList(asyncMysql))
+        }
+    })
 })
 
 server.listen(port, () => {

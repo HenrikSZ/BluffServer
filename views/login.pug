@@ -27,7 +27,7 @@ block content
                 span(x-text="username")
             div(class="d-flex justify-content-center")
                 div(class="m-2") Game name
-                input(class="m-2", type="text", x-model="gameId")
+                input(class="m-2", type="text", x-model="inviteCode")
             button(class="btn btn-warning m-2", @click="showPage = 'set-username'") Back
             button(class="btn btn-success m-2", @click="joinGame()") Join
             

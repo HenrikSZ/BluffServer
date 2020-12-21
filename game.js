@@ -18,7 +18,7 @@ class Game {
         const game = new Game()
         let result
 
-        game.inviteCode = req.body.gameId
+        game.inviteCode = req.body.inviteCode
 
         if (game.inviteCode.length != 8) {
             // TODO error handling
@@ -47,6 +47,12 @@ class Game {
         game.inviteCode = result[0].invite_code
 
         return game
+    }
+
+    async getPlayerNameList(asyncMysql) {
+        let players = await asyncMysql.query(`SELECT username FROM players WHERE game = ${asyncMysql.escape(this.id)}`)
+        players = players.map(e => e.username)
+        return players
     }
 
     async deleteIfEmpty(asyncMysql) {

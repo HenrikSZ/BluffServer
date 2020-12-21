@@ -4,17 +4,27 @@ function handleJsonResponse(jsonResponse) {
     }
 }
 
+function getCookieValue(cookieKey) {
+    let regex = new RegExp('^.*;?\s*' + cookieKey + 's*=\s*([^;]+).*?$', 'gi')
+    //console.log(regex)
+    //console.log(regex.exec(document.cookie)[1])
+    return regex.exec(document.cookie)[1]
+}
+
 function game() {
     return {
         gameState: 'lobby',
+        players: [],
         connectSocketIO() {
             this.socket = io()
 
-            this.socket.on('connect', () => {
-                console.log('connected')
+            this.socket.on('playerList', (data) => {
+                console.log('received player list')
+                console.log(data)
+                this.players = data
             })
-            this.socket.on('event', (msg) => {
-                console.log(msg)
+            this.socket.on('connect', () => {
+                this.socket.emit('token', getCookieValue('token'))
             })
         },
         leaveGame(next) {
