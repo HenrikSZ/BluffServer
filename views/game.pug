@@ -1,11 +1,12 @@
 extends layout.pug
 
 block scripts
+    script(src="/socket.io/socket.io.js")
     script(src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js") 
     script(src="/scripts/game.js")
 
 block content
-    div(x-data="game()", class="mt-5")
+    div(x-data="game()", x-init="connectSocketIO()" class="mt-5")
         h1 In Game as #{player.username}
         h4= player.game.inviteCode
         button(class="btn btn-warning m-2", @click="leaveGame()") Leave

@@ -1,4 +1,6 @@
 const express = require('express')
+const socketio = require('socket.io')
+const http = require('http')
 const cookieParser = require('cookie-parser')
 const path = require('path')
 const asyncMysql = require('./dbConnection.js')
@@ -68,6 +70,14 @@ app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '/public' + req.originalUrl))
 })
 
-app.listen(port, () => {
+const server = http.createServer(app)
+const io = socketio(server)
+
+io.on('connection', (socket) => {
+    console.log('a user connected')
+    socket.emit('event', 'Hello, world!')
+})
+
+server.listen(port, () => {
     console.log(`sys.list.port[${port}]`)
 })

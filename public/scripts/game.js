@@ -7,6 +7,16 @@ function handleJsonResponse(jsonResponse) {
 function game() {
     return {
         gameState: 'lobby',
+        connectSocketIO() {
+            this.socket = io()
+
+            this.socket.on('connect', () => {
+                console.log('connected')
+            })
+            this.socket.on('event', (msg) => {
+                console.log(msg)
+            })
+        },
         leaveGame(next) {
             console.log(`Leaving game`)
             

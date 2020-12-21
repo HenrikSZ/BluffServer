@@ -20,7 +20,11 @@ class Game {
 
         game.inviteCode = req.body.gameId
 
-        result = await asyncMysql.query(`SELECT id FROM games WHERE invite_code = ${asyncMysql.escape(inviteCode)}`)
+        if (game.inviteCode.length != 8) {
+            // TODO error handling
+        }
+
+        result = await asyncMysql.query(`SELECT id FROM games WHERE invite_code = ${asyncMysql.escape(game.inviteCode)}`)
         if (result.length != 1) {
             // TODO error handling
         }
