@@ -5,7 +5,7 @@ block scripts
     script(src="/scripts/login.js")
 
 block content
-    div(x-data="login()", x-init=`username = '${username}'`, class="mt-5")
+    div(x-data="login()", x-init=`username = '${player ? player.username : ''}'`, class="mt-5")
         div(class='jumbotron text-center')
             h1 Create or Join a Game
         
@@ -21,7 +21,7 @@ block content
             h4 2. Create Game as 
                 span(x-text="username")
             button(class="btn btn-warning m-2", @click="showPage = 'set-username'") Back
-            button(class="btn btn-success m-2", @click="createGame()") Create
+            button(class="btn btn-success m-2", @click="createGame(this.loadGame)") Create
         div(class="container" x-show="showPage === 'join-game'")
             h4 2. Join Game as 
                 span(x-text="username")
