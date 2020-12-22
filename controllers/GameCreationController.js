@@ -1,4 +1,4 @@
-const Game = require('../game.js')
+const Game = require('../models/Game.js')
 
 class GameCreationController {
     static handle(socket, data, io, gameManager) {

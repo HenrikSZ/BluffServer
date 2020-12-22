@@ -5,8 +5,8 @@ const cookieParser = require('cookie-parser')
 const path = require('path')
 const asyncMysql = require('./dbConnection.js')
 
-const GameManager = require('./gameManager.js')
-const PlayerManager = require('./playerManager.js')
+const GameManager = require('./models/GameManager.js')
+const PlayerManager = require('./models/PlayerManager.js')
 
 const PlayerJoinController = require('./controllers/PlayerJoinController.js')
 const PlayerLeaveController = require('./controllers/PlayerLeaveController.js')
@@ -30,47 +30,6 @@ app.use((req, res, next) => {
     }
     next()
 })
-
-/*
-app.post('/player/create', async (req, res) => {
-    await Player.createNew(req, res, asyncMysql)
-    res.send({ status: 0 })
-})
-
-app.use('/game', (req, res, next) => {
-    if (!req.player) {
-        res.redirect('/')
-    } else {
-        next()
-    }
-})
-
-app.post('/game/join', (req, res) => {
-    req.player.join(Game.getFromInviteCode(req.body.inviteCode))
-    res.send({
-        goto: '/game'
-    })
-})
-app.post('/game/create', (req, res) => {
-    req.player.join(Game.createNew())
-    res.send({
-        goto: '/game'
-    })
-})
-app.post('/game/leave', (req, res) => {
-    req.player.leave(asyncMysql)
-    res.send({
-        goto: '/'
-    })
-})
-
-app.get('/game', (req, res) => {
-    if (req.player && req.player.game) {
-        res.render('game', { player: req.player })
-    } else {
-        res.redirect('/')
-    }
-})*/
 
 app.get('/', (req, res) => {
     res.render('login', { player: req.player })

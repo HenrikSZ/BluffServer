@@ -1,4 +1,4 @@
-const Player = require('../player.js')
+const Player = require('../models/Player.js')
 
 class PlayerAuthController {
     static async handle(socket, data, playerManager, asyncMysql) {
