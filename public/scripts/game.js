@@ -1,46 +1,55 @@
-function handleJsonResponse(jsonResponse) {
-    if (jsonResponse.goto) {
-        window.location = jsonResponse.goto
-    }
-}
-
 function getCookieValue(cookieKey) {
     let regex = new RegExp('^.*;?\s*' + cookieKey + 's*=\s*([^;]+).*?$', 'gi')
-    //console.log(regex)
-    //console.log(regex.exec(document.cookie)[1])
-    return regex.exec(document.cookie)[1]
+    let regexResult = regex.exec(document.cookie)
+    return regexResult ? regexResult[1] : null
 }
 
 function game() {
     return {
-        gameState: 'lobby',
+        gameState: 'set-username',
         players: [],
+        game: {},
+        player: {},
         connectSocketIO() {
             this.socket = io()
 
-            this.socket.on('playerList', (data) => {
-                console.log('received player list')
+            this.socket.on('statechange', data => {
+                this.gameState = data
+            })
+            this.socket.on('gameinfo', data => {
+                this.game = data
+            })
+            this.socket.on('playerlist', data => {
+                console.log('received playerlist')
                 console.log(data)
                 this.players = data
             })
-            this.socket.on('connect', () => {
-                this.socket.emit('token', getCookieValue('token'))
+            this.socket.on('playerinfo', data => {
+                this.player = data
             })
         },
-        leaveGame(next) {
-            console.log(`Leaving game`)
-            
-            const xhttp = new XMLHttpRequest()
-            xhttp.onreadystatechange = function() {
-                if (this.readyState == 4 && this.status == 200 ) {
-                    handleJsonResponse(JSON.parse(this.responseText))
-                    if (next)
-                        next()
-                }
+        authSocketIO() {
+            const token = getCookieValue('token')
+            if (token) {
+                this.socket.emit('auth', { token: token })
+            } else {
+                this.socket.emit('auth', { username: username })
             }
-            xhttp.open('POST', '/game/leave')
-            xhttp.setRequestHeader('Content-type', 'application/json')
-            xhttp.send()
+        },
+        createGame() {
+            this.socket.on('auth-success', () => {
+                this.socket.emit('game-create')
+                this.socket.off('auth-success')
+            })
+            this.authSocketIO()
+        },
+        joinGame() {
+            // TODO client side validating
+            this.socket.on('auth-success', () => {
+                this.socket.emit('game-join', inviteCode)
+                this.socket.off('auth-success')
+            })
+            this.authSocketIO()
         }
     }
 }

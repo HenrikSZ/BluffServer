@@ -1,64 +1,42 @@
 const crypto = require('crypto')
 
 class Game {
-    static async createNew(asyncMysql) {
+    static create() {
         const game = new Game()
-        let result
-
-        game.inviteCode = crypto.randomBytes(4).toString('hex')
-        result = await asyncMysql.query(`INSERT INTO games (invite_code) VALUES (${asyncMysql.escape(game.inviteCode)})`)
-        game.id = result.insertId
-
-        // TODO error handling
 
         return game
     }
 
-    static async createFromExisting(req, asyncMysql) {
-        const game = new Game()
-        let result
-
-        game.inviteCode = req.body.inviteCode
-
-        if (game.inviteCode.length != 8) {
-            // TODO error handling
-        }
-
-        result = await asyncMysql.query(`SELECT id FROM games WHERE invite_code = ${asyncMysql.escape(game.inviteCode)}`)
-        if (result.length != 1) {
-            // TODO error handling
-        }
-
-        game.id = result[0].id
-
-        return game
+    constructor() {
+        this.players = []
+        this.inviteCode = crypto.randomBytes(4).toString('hex')
     }
 
-    static async createFromId(id, asyncMysql) {
-        const game = new Game()
-        let result
+    getPublicPlayerList() {
+        return this.players.map(p => {
+            return {
+                username: p.username
+            }
+        })
+    }
 
-        result = await asyncMysql.query(`SELECT invite_code FROM games WHERE id = ${asyncMysql.escape(id)}`)
-        if (result.length != 1) {
-            // TODO error handling
+    getPublicGameInfo() {
+        return {
+            inviteCode: this.inviteCode,
+            playerCount: this.players.length
         }
-
-        game.id = id
-        game.inviteCode = result[0].invite_code
-
-        return game
     }
 
-    async getPlayerNameList(asyncMysql) {
-        let players = await asyncMysql.query(`SELECT username FROM players WHERE game = ${asyncMysql.escape(this.id)}`)
-        players = players.map(e => e.username)
-        return players
+    addPlayer(player) {
+        if (!this.players.includes(player)) {
+            this.players.push(player)
+        }
     }
 
-    async deleteIfEmpty(asyncMysql) {
-        let result = await asyncMysql.query(`SELECT COUNT(*) FROM players WHERE game = ${this.id}`)
-        if (result[0]['COUNT(*)'] == 0) {
-            await asyncMysql.query(`DELETE FROM games WHERE id = ${this.id}`)
+    removePlayer(player) {
+        this.players = this.players.filter(p => p != player)
+        if (this.players.length == 0) {
+            this.gameManager.removeGame(this)
         }
     }
 }

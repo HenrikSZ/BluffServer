@@ -1,35 +1,40 @@
 extends layout.pug
 
 block scripts
-    script(src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js")
-    script(src="/scripts/login.js")
+    script(src="/socket.io/socket.io.js")
+    script(src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js") 
+    script(src="/scripts/game.js")
 
 block content
-    div(x-data="login()", x-init=`username = '${player ? player.username : ''}'`, class="mt-5")
+    div(x-data="game()", x-init=`username = '${player ? player.username : ''}'; connectSocketIO()`, class="mt-5")
         div(class='jumbotron text-center')
             h1 Create or Join a Game
         
-        div(class="container", x-show="showPage === 'set-username'")
+        div(class="container", x-show="gameState === 'set-username'")
             h4 1. Set Username
             div(class="d-flex justify-content-center")
                 div(class="m-2") Username
                 input(class="m-2", type="text", x-model="username")
-            button(class="btn btn-primary m-2", @click="showPage = 'create-game'") Create
-            button(class="btn btn-primary m-2", @click="showPage = 'join-game'") Join
+            button(class="btn btn-primary m-2", @click="gameState = 'create-game'") Create
+            button(class="btn btn-primary m-2", @click="gameState = 'join-game'") Join
         
-        div(class="container", x-show="showPage === 'create-game'")
-            h4 2. Create Game as 
+        div(class="container", x-show="gameState === 'create-game'")
+            h4 2. Create Game as
                 span(x-text="username")
-            button(class="btn btn-warning m-2", @click="showPage = 'set-username'") Back
+            button(class="btn btn-warning m-2", @click="gameState = 'set-username'") Back
             button(class="btn btn-success m-2", @click="createGame(this.loadGame)") Create
-        div(class="container" x-show="showPage === 'join-game'")
-            h4 2. Join Game as 
+        div(class="container" x-show="gameState === 'join-game'")
+            h4 2. Join Game as
                 span(x-text="username")
             div(class="d-flex justify-content-center")
                 div(class="m-2") Game name
-                input(class="m-2", type="text", x-model="inviteCode")
-            button(class="btn btn-warning m-2", @click="showPage = 'set-username'") Back
+                input(class="m-2", type="text", x-model="game.inviteCode")
+            button(class="btn btn-warning m-2", @click="gameState = 'set-username'") Back
             button(class="btn btn-success m-2", @click="joinGame()") Join
-            
+
+        div(class="container", x-show="gameState === 'lobby'")
+            div(x-text="game.invitCode")
+            template(x-for="item in players" :key="item")
+                div(x-text="item.username" :class="{ 'border border-primary': item.isThisPlayer }")
             
         div If you choose to create or join a game you agree to have a cookie set on your browser
