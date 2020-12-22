@@ -1,10 +1,12 @@
+const Player = require('./Player.js')
+
 class PlayerManager {
     static async createAndLoadPlayers(asyncMysql) {
         const playerManager = new PlayerManager()
 
-        const players = await asyncMysql.query(`SELECT username, token FROM players`)
+        const players = await asyncMysql.query(`SELECT id, username, token FROM players`)
         players.forEach(p => {
-            playerManager.addPlayer(p)
+            playerManager.addPlayer(Player.createFromDb(p))
         })
 
         return playerManager

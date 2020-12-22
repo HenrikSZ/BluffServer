@@ -10,6 +10,7 @@ class Game {
     constructor() {
         this.players = []
         this.inviteCode = crypto.randomBytes(4).toString('hex')
+        this.state = 'lobby'
     }
 
     getPublicPlayerList() {

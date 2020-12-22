@@ -4,52 +4,76 @@ function getCookieValue(cookieKey) {
     return regexResult ? regexResult[1] : null
 }
 
+function setCookieValue(key, value, maxAge) {
+    document.cookie = `${key}=${value}; max-age=${maxAge}`
+}
+
 function game() {
     return {
-        gameState: 'set-username',
+        gameState: '',
         players: [],
         game: {},
         player: {},
+        authenticated: false,
+        rejoin: false,
         connectSocketIO() {
             this.socket = io()
 
             this.socket.on('statechange', data => {
+                console.log(`game.statechange[${data}]`)
                 this.gameState = data
             })
             this.socket.on('gameinfo', data => {
+                console.log(`game.gameinfo`)
                 this.game = data
             })
             this.socket.on('playerlist', data => {
-                console.log('received playerlist')
-                console.log(data)
+                console.log(`game.playerlist`)
                 this.players = data
             })
             this.socket.on('playerinfo', data => {
+                console.log(`game.playerinfo`)
                 this.player = data
             })
+
+            if (this.rejoin) {
+                console.log('game.rejoin')
+                this.authSocketIO()
+            } else {
+                this.gameState = 'set-username'
+            }
         },
         authSocketIO() {
+            this.socket.on('auth-response', data => {
+                this.socket.off('auth-response')
+                if (!data || !data.error) {
+                    this.authenticated = true
+                } else {
+                    console.log(data.error)
+                }
+            })
+
             const token = getCookieValue('token')
             if (token) {
                 this.socket.emit('auth', { token: token })
             } else {
                 this.socket.emit('auth', { username: username })
+                this.socket.on('playerinfo', data => {
+                    this.socket.off('playerinfo')
+                    this.player = data
+                    setCookieValue('token', data.token, 31536000000)
+                })
             }
         },
         createGame() {
-            this.socket.on('auth-success', () => {
-                this.socket.emit('game-create')
-                this.socket.off('auth-success')
-            })
-            this.authSocketIO()
+            while (!this.authenticated) continue
+            
+            this.socket.emit('game-create')
         },
         joinGame() {
-            // TODO client side validating
-            this.socket.on('auth-success', () => {
-                this.socket.emit('game-join', inviteCode)
-                this.socket.off('auth-success')
-            })
-            this.authSocketIO()
+            while (!this.authenticated) continue
+            
+            this.socket.emit('game-join')
         }
     }
 }

@@ -28,7 +28,17 @@ class Player {
         return player
     }
 
-    getPublicData() {
+    static createFromDb(playerData) {
+        const player = new Player()
+
+        player.username = playerData.username
+        player.id = playerData.id
+        player.token = playerData.token
+
+        return player
+    }
+
+    getPublicPlayerInfo() {
         return {
             username: this.username,
             token: this.token

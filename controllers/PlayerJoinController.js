@@ -15,7 +15,7 @@ class PlayerJoinController {
         socket.player.joinGame(game)
 
         socket.join(game.inviteCode)
-        io.to(game.inviteCode).emit('lobby-update', player.game.getPlayerNameList(asyncMysql))
+        io.to(game.inviteCode).emit('playerlist', player.game.getPlayerNameList(asyncMysql))
     }
 }
 

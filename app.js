@@ -44,7 +44,12 @@ const io = socketio(server)
 
 io.on('connection', socket => {
     socket.on('auth', async data => {
-        await PlayerAuthController.handle(socket, data, playerManager, asyncMysql)
+        try {
+            await PlayerAuthController.handle(socket, data, playerManager, asyncMysql)
+            socket.emit('auth-response')
+        } catch (e) {
+            socket.emit('auth-response', { error: socket.emit('auth-response') })
+        }
     })
     socket.on('game-join', data => {
         PlayerJoinController.handle(socket, data)
