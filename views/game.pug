@@ -10,34 +10,40 @@ html
         title Play Bluff online
     body
         div(id='wrapper', class="p-4 text-center")
-            div(x-data="game()", x-init=`username = '${player ? player.username : ''}'; rejoin = ${player ? !!player.game : false}; connectSocketIO()`, class="mt-5")
+            div(x-data="game()", x-init=`username = '${player ? player.username : ''}'; rejoin = ${player ? !!player.game : false}; connectSocketIO()`)
                 div(class='jumbotron text-center')
-                    h1 Create or Join a Game
+                    h1(class="text-primary") Bluff Online
                 
-                div(class="container", x-show="gameState === 'set-username'")
-                    h4 1. Set Username
-                    div(class="d-flex justify-content-center")
-                        div(class="m-2") Username
+                div(class="container mt-4 mb-4", x-show="gameState === 'set-username' || gameState === 'create-game' || gameState === 'join-game'")
+                    h3 Create or Join a Game
+                div(x-show="gameState === 'set-username'")
+                    h4 Set Nickname
+                    div
                         input(class="m-2", type="text", x-model="username")
-                    button(class="btn btn-primary m-2", @click="gameState = 'create-game'; authSocketIO()") Create
-                    button(class="btn btn-primary m-2", @click="gameState = 'join-game'; authSocketIO()") Join
-                    div If you choose to create or join a game you agree to have a cookie set on your browser
+                    div(class="row d-flex justify-content-center")
+                        button(class="btn btn-primary m-2 col-md-2", @click="gameState = 'create-game'; authSocketIO()") Create
+                        button(class="btn btn-primary m-2 col-md-2", @click="gameState = 'join-game'; authSocketIO()") Join
+                    div(class="mt-5") If you choose to create or join a game you agree to have a cookie set on your browser
                 
-                div(class="container", x-show="gameState === 'create-game'")
-                    h4 2. Create Game as
-                        span(x-text="username")
-                    button(class="btn btn-warning m-2", @click="gameState = 'set-username'") Back
-                    button(class="btn btn-success m-2", @click="createGame(this.loadGame)") Create
-                div(class="container" x-show="gameState === 'join-game'")
-                    h4 2. Join Game as
-                        span(x-text="username")
-                    div(class="d-flex justify-content-center")
-                        div(class="m-2") Game name
+                div(x-show="gameState === 'create-game'")
+                    h4 Create Game
+                    div(class="row d-flex justify-content-center")
+                        button(class="btn btn-warning m-2 col-md-2", @click="gameState = 'set-username'") Back
+                        button(class="btn btn-success m-2 col-md-2", @click="createGame(this.loadGame)") Create
+                div(x-show="gameState === 'join-game'")
+                    h4 Join Game by Invite Code
+                    div
                         input(class="m-2", type="text", x-model="game.inviteCode")
-                    button(class="btn btn-warning m-2", @click="gameState = 'set-username'") Back
-                    button(class="btn btn-success m-2", @click="joinGame()") Join
+                    div(class="row d-flex justify-content-center")
+                        button(class="btn btn-warning m-2 col-md-2", @click="gameState = 'set-username'") Back
+                        button(class="btn btn-success m-2 col-md-2", @click="joinGame()") Join
 
-                div(class="container", x-show="gameState === 'lobby'")
-                    div(x-text="game.inviteCode")
-                    template(x-for="item in players" :key="item")
-                        div(x-text="item.username" :class="{ 'border border-primary': item.isThisPlayer }")
+                div(x-show="gameState === 'lobby'")
+                    h4(x-text="'Invite Code: ' + game.inviteCode")
+                    div(class="d-flex justify-content-center m-4")
+                        div(class="border border-warning w-25")
+                            h4 Players in Lobby
+                            template(x-for="item in players" :key="item")
+                                div(x-text="item.username" :class="{ 'border border-primary': item.isThisPlayer }")
+                    button(class="btn btn-danger m-2" @click="leaveGame()") Leave
+                    button(class="btn btn-success m-2" x-show="player.isAdmin" @click="startGame()") Start

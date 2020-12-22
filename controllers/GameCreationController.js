@@ -9,12 +9,14 @@ class GameCreationController {
         const game = Game.create()
         gameManager.addGame(game)
 
+        game.admin = socket.player
         socket.player.joinGame(game)
 
         socket.join(game.inviteCode)
         io.to(game.inviteCode).emit('playerlist', game.getPublicPlayerList())
         socket.emit('gameinfo', game.getPublicGameInfo())
         socket.emit('statechange', 'lobby')
+        socket.emit('playerinfo', socket.player.getPublicPlayerInfo())
     }
 }
 

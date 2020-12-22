@@ -32,7 +32,7 @@ app.use((req, res, next) => {
 })
 
 app.get('/', (req, res) => {
-    res.render('login', { player: req.player })
+    res.render('game', { player: req.player })
 })
 
 app.get('*', (req, res) => {

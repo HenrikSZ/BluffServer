@@ -33,6 +33,7 @@ function game() {
             })
             this.socket.on('playerinfo', data => {
                 console.log(`game.playerinfo`)
+                console.log(data)
                 this.player = data
             })
 
@@ -74,6 +75,16 @@ function game() {
             while (!this.authenticated) continue
             
             this.socket.emit('game-join')
+        },
+        leaveGame() {
+            if (this.game) {
+                this.socket.emit('game-leave')
+            }
+        },
+        startGame() {
+            if (this.game && this.player.isAdmin) {
+                this.socket.emit('game-start')
+            }
         }
     }
 }

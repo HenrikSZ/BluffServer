@@ -5,6 +5,9 @@ class PlayerLeaveController {
         }
 
         socket.player.leaveGame()
+
+        socket.emit('statechange', 'set-username')
+        socket.emit('gameinfo', {})
     }
 }
 

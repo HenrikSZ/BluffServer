@@ -38,10 +38,17 @@ class Player {
         return player
     }
 
+    constructor() {
+        this.username = ''
+        this.id = ''
+        this.token = ''
+    }
+
     getPublicPlayerInfo() {
         return {
             username: this.username,
-            token: this.token
+            token: this.token,
+            isAdmin: this.game.admin == this
         }
     }
 
