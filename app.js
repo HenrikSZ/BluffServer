@@ -13,6 +13,7 @@ const PlayerLeaveController = require('./controllers/PlayerLeaveController.js')
 const PlayerMoveController = require('./controllers/PlayerMoveController.js')
 const PlayerAuthController = require('./controllers/PlayerAuthController.js')
 const GameCreationController = require('./controllers/GameCreationController.js')
+const GameStartController = require('./controllers/GameStartController.js')
 
 const app = express()
 const port = 3000
@@ -59,6 +60,9 @@ io.on('connection', socket => {
     })
     socket.on('game-leave', data => {
         PlayerLeaveController.handle(socket, data)
+    })
+    socket.on('game-start', data => {
+        GameStartController.handle(socket, data, io)
     })
     socket.on('player-move', data => {
         PlayerMoveController.handle(socket, data)

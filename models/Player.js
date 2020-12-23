@@ -34,6 +34,7 @@ class Player {
         player.username = playerData.username
         player.id = playerData.id
         player.token = playerData.token
+        player.dices = []
 
         return player
     }
@@ -42,14 +43,29 @@ class Player {
         this.username = ''
         this.id = ''
         this.token = ''
+        this.dices = []
     }
 
     getPublicPlayerInfo() {
         return {
             username: this.username,
             token: this.token,
-            isAdmin: this.game.admin == this
+            isAdmin: this.game.admin == this,
+            dices: this.dices
         }
+    }
+
+    rollTheDices(reset) {
+        const diceCount = reset ? 5 : dices.length
+
+        this.dices = []
+        for (let i = 0; i < diceCount; i++) {
+            this.dices.push(Math.round(Math.random() * 6 - 0.5))
+        }
+    }
+
+    dicesCount() {
+        return this.dices.length
     }
 
     joinGame(game) {
@@ -64,6 +80,12 @@ class Player {
 
         this.game.removePlayer(this)
         this.game = null
+    }
+
+    prepare() {
+        this.players.forEach(p => {
+            p.rollTheDices(true)
+        })
     }
 }
 

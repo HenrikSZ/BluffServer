@@ -11,12 +11,14 @@ class Game {
         this.players = []
         this.inviteCode = crypto.randomBytes(4).toString('hex')
         this.state = 'lobby'
+        this.currentTurnIndex = 0
     }
 
     getPublicPlayerList() {
         return this.players.map(p => {
             return {
-                username: p.username
+                username: p.username,
+                diceCount: p.dicesCount()
             }
         })
     }
@@ -39,6 +41,22 @@ class Game {
         if (this.players.length == 0) {
             this.gameManager.removeGame(this)
         }
+    }
+
+    nextPlayerTurn() {
+        this.currentTurnIndex++
+
+        if (this.currentTurnIndex == this.players.length || this.players[this.currentTurnIndex].diceCount <= 0) {
+            this.currentTurnIndex = 0
+        }
+    }
+
+    prepare() {
+        this.players.forEach(p => {
+            p.rollTheDices(true)
+        })
+
+        this.state = 'ingame'
     }
 }
 

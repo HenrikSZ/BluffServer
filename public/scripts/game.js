@@ -13,7 +13,9 @@ function game() {
         gameState: '',
         players: [],
         game: {},
-        player: {},
+        player: {
+            dices: []
+        },
         authenticated: false,
         rejoin: false,
         connectSocketIO() {
@@ -33,7 +35,6 @@ function game() {
             })
             this.socket.on('playerinfo', data => {
                 console.log(`game.playerinfo`)
-                console.log(data)
                 this.player = data
             })
 

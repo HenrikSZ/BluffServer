@@ -47,3 +47,8 @@ html
                                 div(x-text="item.username" :class="{ 'border border-primary': item.isThisPlayer }")
                     button(class="btn btn-danger m-2" @click="leaveGame()") Leave
                     button(class="btn btn-success m-2" x-show="player.isAdmin" @click="startGame()") Start
+                div(x-show="gameState === 'ingame'")
+                    div(class="d-flex justify-content-center m-4")
+                        template(x-for="item in player.dices" :key="item")
+                            div(class="m-4" x-text="item == 0 ? 'star' : item")
+
