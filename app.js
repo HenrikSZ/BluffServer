@@ -8,12 +8,7 @@ const asyncMysql = require('./dbConnection.js')
 const GameManager = require('./models/GameManager.js')
 const PlayerManager = require('./models/PlayerManager.js')
 
-const PlayerJoinController = require('./controllers/PlayerJoinController.js')
-const PlayerLeaveController = require('./controllers/PlayerLeaveController.js')
-const PlayerMoveController = require('./controllers/PlayerMoveController.js')
-const PlayerAuthController = require('./controllers/PlayerAuthController.js')
-const GameCreationController = require('./controllers/GameCreationController.js')
-const GameStartController = require('./controllers/GameStartController.js')
+const GameController = require('./controllers/GameController.js')
 
 const app = express()
 const port = 3000
@@ -43,34 +38,37 @@ app.get('*', (req, res) => {
 const server = http.createServer(app)
 const io = socketio(server)
 
-io.on('connection', socket => {
-    socket.on('auth', async data => {
-        try {
-            await PlayerAuthController.handle(socket, data, playerManager, asyncMysql)
-            socket.emit('auth-response')
-        } catch (e) {
-            socket.emit('auth-response', { error: socket.emit('auth-response') })
-        }
-    })
-    socket.on('game-join', data => {
-        PlayerJoinController.handle(socket, data, io, gameManager)
-    })
-    socket.on('game-create', data => {
-        GameCreationController.handle(socket, data, io, gameManager)
-    })
-    socket.on('game-leave', data => {
-        PlayerLeaveController.handle(socket, data)
-    })
-    socket.on('game-start', data => {
-        GameStartController.handle(socket, data, io)
-    })
-    socket.on('player-move', data => {
-        PlayerMoveController.handle(socket, data)
-    })
-})
-
 server.listen(port, async () => {
     playerManager = await PlayerManager.createAndLoadPlayers(asyncMysql)
     gameManager = GameManager.create()
+    const gameController = new GameController(io, asyncMysql, gameManager, playerManager)
+
+    io.on('connection', socket => {
+        socket.on('create', data => {
+            gameController.handleCreate(socket, data)
+        })
+        socket.on('start', data => {
+            gameController.handleStart(socket, data)
+        })
+
+        socket.on('auth', async data => {
+            try {
+                await gameController.handleAuth(socket, data)
+                socket.emit('auth-response')
+            } catch (e) {
+                console.log(e)
+                socket.emit('auth-response', { error: 'Auth unsuccessful' })
+            }
+        })
+        socket.on('join', data => {
+            gameController.handleJoin(socket, data)
+        })
+        socket.on('leave', data => {
+            gameController.handleLeave(socket, data)
+        })
+        socket.on('move', data => {
+            gameController.handleMove(socket, data)
+        })
+    })
     console.log(`sys.list.port[${port}]`)
 })

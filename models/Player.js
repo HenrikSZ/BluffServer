@@ -34,7 +34,6 @@ class Player {
         player.username = playerData.username
         player.id = playerData.id
         player.token = playerData.token
-        player.dices = []
 
         return player
     }
@@ -50,7 +49,7 @@ class Player {
         return {
             username: this.username,
             token: this.token,
-            isAdmin: this.game.admin == this,
+            isAdmin: this.game && this.game.admin == this,
             dices: this.dices
         }
     }

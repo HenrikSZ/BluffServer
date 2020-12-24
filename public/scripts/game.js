@@ -75,21 +75,21 @@ function game() {
         createGame() {
             while (!this.authenticated) continue
             
-            this.socket.emit('game-create')
+            this.socket.emit('create')
         },
         joinGame() {
             while (!this.authenticated) continue
             
-            this.socket.emit('game-join', { inviteCode: this.game.inviteCode })
+            this.socket.emit('join', { inviteCode: this.game.inviteCode })
         },
         leaveGame() {
             if (this.game) {
-                this.socket.emit('game-leave')
+                this.socket.emit('leave')
             }
         },
         startGame() {
             if (this.game && this.player.isAdmin) {
-                this.socket.emit('game-start')
+                this.socket.emit('start')
             }
         },
         createDiceCanvas(dices, diceSize) {
