@@ -16,8 +16,11 @@ class GameStartController {
         // TODO
         socket.player.game.prepare()
         io.to(socket.player.game.inviteCode).emit('playerlist', socket.player.game.getPublicPlayerList())
-        socket.emit('playerinfo', socket.player.getPublicPlayerInfo())
-        socket.emit('statechange', 'ingame')
+        socket.player.game.players.forEach(p => {
+            p.socket.emit('playerinfo', p.getPublicPlayerInfo())
+        });
+        
+        io.to(socket.player.game.inviteCode).emit('statechange', 'ingame')
     }
 }
 

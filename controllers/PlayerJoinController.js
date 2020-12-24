@@ -1,7 +1,7 @@
 class PlayerJoinController {
-    static handle(socket, data, gameManager) {
+    static handle(socket, data, io, gameManager) {
         if (!socket.player) {
-            // Handle not authenticated error
+            throw new Error('Player not authenticated')
         }
         if (!data || !data.inviteCode) {
             // Handle ill-formatted error
@@ -15,7 +15,10 @@ class PlayerJoinController {
         socket.player.joinGame(game)
 
         socket.join(game.inviteCode)
-        io.to(game.inviteCode).emit('playerlist', player.game.getPlayerNameList(asyncMysql))
+        io.to(game.inviteCode).emit('playerlist', game.getPublicPlayerList())
+        socket.emit('gameinfo', game.getPublicGameInfo())
+        socket.emit('statechange', 'lobby')
+        socket.emit('playerinfo', socket.player.getPublicPlayerInfo())
     }
 }
 

@@ -16,9 +16,16 @@ class Game {
 
     getPublicPlayerList() {
         return this.players.map(p => {
-            return {
-                username: p.username,
-                diceCount: p.dicesCount()
+            if (this.state === 'ingame') {
+                return {
+                    username: p.username,
+                    dices: [0, 0, 0, 0, 0]
+                }
+            } else {
+                return {
+                    username: p.username,
+                    dices: p.dices
+                }
             }
         })
     }

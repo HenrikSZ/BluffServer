@@ -53,7 +53,7 @@ io.on('connection', socket => {
         }
     })
     socket.on('game-join', data => {
-        PlayerJoinController.handle(socket, data)
+        PlayerJoinController.handle(socket, data, io, gameManager)
     })
     socket.on('game-create', data => {
         GameCreationController.handle(socket, data, io, gameManager)

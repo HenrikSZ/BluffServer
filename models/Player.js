@@ -60,8 +60,10 @@ class Player {
 
         this.dices = []
         for (let i = 0; i < diceCount; i++) {
-            this.dices.push(Math.round(Math.random() * 6 - 0.5))
+            this.dices.push(1 + Math.floor(Math.random() * 6))
         }
+
+        this.dices.sort((a, b) => a - b)
     }
 
     dicesCount() {

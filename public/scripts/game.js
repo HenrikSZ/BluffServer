@@ -32,10 +32,15 @@ function game() {
             this.socket.on('playerlist', data => {
                 console.log(`game.playerlist`)
                 this.players = data
+                this.$nextTick(this.updateOtherPlayerDiceCanvases.bind(this))
             })
             this.socket.on('playerinfo', data => {
                 console.log(`game.playerinfo`)
                 this.player = data
+
+                console.log(this.$refs.ownDicesCanvasParent.textContent)
+                this.$refs.ownDicesCanvasParent.textContent = ''
+                this.$refs.ownDicesCanvasParent.appendChild(this.createDiceCanvas(this.player.dices, 100))
             })
 
             if (this.rejoin) {
@@ -75,7 +80,7 @@ function game() {
         joinGame() {
             while (!this.authenticated) continue
             
-            this.socket.emit('game-join')
+            this.socket.emit('game-join', { inviteCode: this.game.inviteCode })
         },
         leaveGame() {
             if (this.game) {
@@ -85,6 +90,26 @@ function game() {
         startGame() {
             if (this.game && this.player.isAdmin) {
                 this.socket.emit('game-start')
+            }
+        },
+        createDiceCanvas(dices, diceSize) {
+            const canvas = document.createElement('canvas')
+            const spacing = (diceSize / 10)
+            canvas.width = 5 * diceSize + 4 * spacing
+            canvas.height = diceSize
+            const ctx = canvas.getContext('2d')
+
+            dices.forEach((d, index) => {
+                ctx.drawImage(this.$refs.dicesImage, d * 200, dices.highlighted ? 200 : 0, 200, 200, (diceSize + spacing) * index, 0, diceSize, diceSize)
+            })
+
+            return canvas
+        },
+        updateOtherPlayerDiceCanvases() {
+            const canvasDivs = document.getElementsByClassName('canvasDiv')
+
+            for (let i = 0; i < canvasDivs.length; i++) {
+                canvasDivs[i].appendChild(this.createDiceCanvas(this.players[i].dices, 30))
             }
         }
     }
