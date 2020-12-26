@@ -49,8 +49,7 @@ class Player {
         return {
             username: this.username,
             token: this.token,
-            isAdmin: this.game && this.game.admin == this,
-            dices: this.dices
+            isAdmin: this.game && this.game.admin == this
         }
     }
 

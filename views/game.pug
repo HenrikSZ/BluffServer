@@ -12,6 +12,7 @@ html
         div(id='wrapper', class="p-4 text-center")
             div(x-data="game()", x-init=`username = '${player ? player.username : ''}'; rejoin = ${player ? !!player.game : false}; connectSocketIO()`)
                 img(class="d-none" src="/images/dices.png" x-ref="dicesImage")
+                img(class="d-none" src="/images/fields.png" x-ref="fieldsImage")
                 div(class='jumbotron text-center')
                     h1(class="text-primary") Bluff Online
                 
@@ -48,14 +49,9 @@ html
                                 div(x-text="item.username" :class="{ 'border border-primary': item.isThisPlayer }")
                     button(class="btn btn-danger m-2" @click="leaveGame()") Leave
                     button(class="btn btn-success m-2" x-show="player.isAdmin" @click="startGame()") Start
-                div(x-show="gameState === 'ingame'")
+                div(x-show="isIngame()")
                     div(class="m-4")
-                        div
-                            h3 Your dices
-                        div(x-ref="ownDicesCanvasParent")
-                    div(class="position-absolute" style="right:30px; top:50px")
-                        h3 Players
-                        template(x-for="(p, index) in players" :key="p")
-                            div(class="m-4 text-left")
-                                div(class="text-right" x-text="p.username")
-                                div(class="canvasDiv")
+                        div(x-show="players[0] && players[0].atTurn")
+                            div(x-ref="ownTurnOptionsCanvasParent")
+                    div(class="text-center")
+                        canvas(class="border border-primary" x-ref="gameCanvas" width="1200px" height="600px")

@@ -15,11 +15,12 @@ class Game {
     }
 
     getPublicPlayerList() {
-        return this.players.map(p => {
+        return this.players.map((p, index) => {
             if (this.state === 'ingame') {
                 return {
                     username: p.username,
-                    dices: [0, 0, 0, 0, 0]
+                    dices: [0, 0, 0, 0, 0],
+                    atTurn: index == this.currentTurnIndex
                 }
             } else {
                 return {
@@ -28,6 +29,38 @@ class Game {
                 }
             }
         })
+    }
+
+    getCustomPlayerList(player) {
+        const target = []
+
+        let i = this.players.indexOf(player)
+
+        target.push({
+            username: player.username,
+            dices: this.state === 'ingame' ? player.dices : [],
+            atTurn: i == this.currentTurnIndex
+        })        
+
+        i++
+
+        if (i == this.players.length)
+        i = 0
+
+        while (this.players[i] != player) {
+            target.push({
+                username: this.players[i].username,
+                dices: this.state === 'ingame' ? [0, 0, 0, 0, 0] : [],
+                atTurn: i == this.currentTurnIndex
+            })
+
+            i++
+
+            if (i == this.players.length)
+                i = 0
+        }
+
+        return target
     }
 
     getPublicGameInfo() {

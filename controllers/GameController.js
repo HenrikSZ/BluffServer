@@ -19,7 +19,7 @@ class GameController {
 
             } else if (data.username) {
                 socket.player = await Player.createNew(data.username, this.asyncMysql)
-                this.gameManager.addPlayer(socket.player)
+                this.playerManager.addPlayer(socket.player)
             } else {
                 throw new Error('Invalid field combination for auth')
             }
@@ -38,7 +38,7 @@ class GameController {
         socket.join(socket.player.game.inviteCode)
 
         socket.emit('gameinfo', socket.player.game.getPublicGameInfo())
-        socket.emit('playerlist', socket.player.game.getPublicPlayerList())
+        socket.emit('playerlist', socket.player.game.getCustomPlayerList(socket.player))
         socket.emit('statechange', socket.player.game.state)
     }
 
@@ -66,13 +66,20 @@ class GameController {
 
     handleLeave(socket, data) {
         if (!socket.player) {
-            // Handle not authenticated error
+            throw new Error('Player not authenticated')
+        }
+        if (!socket.player.game) {
+            throw new Error('Player not in game')
         }
 
+        const game = socket.player.game        
         socket.player.leaveGame()
 
         socket.emit('statechange', 'set-username')
         socket.emit('gameinfo', {})
+        socket.player.game.players.forEach(p => {
+            p.socket.emit('playerlist', socket.player.game.getCustomPlayerList(p))
+        })
     }
 
     handleCreate(socket, data) {
@@ -87,7 +94,9 @@ class GameController {
         socket.player.joinGame(game)
 
         socket.join(game.inviteCode)
-        this.io.to(game.inviteCode).emit('playerlist', game.getPublicPlayerList())
+        socket.player.game.players.forEach(p => {
+            p.socket.emit('playerlist', socket.player.game.getCustomPlayerList(p))
+        })
         socket.emit('gameinfo', game.getPublicGameInfo())
         socket.emit('statechange', 'lobby')
         socket.emit('playerinfo', socket.player.getPublicPlayerInfo())
@@ -109,11 +118,12 @@ class GameController {
 
         // TODO
         socket.player.game.prepare()
-        this.io.to(socket.player.game.inviteCode).emit('playerlist', socket.player.game.getPublicPlayerList())
         socket.player.game.players.forEach(p => {
-            p.socket.emit('playerinfo', p.getPublicPlayerInfo())
-        });
+            p.socket.emit('playerlist', socket.player.game.getCustomPlayerList(p))
+        })
         
+        //let playerAtTurnSocket = socket.player.game.players[socket.player.game.currentTurnIndex].socket
+
         this.io.to(socket.player.game.inviteCode).emit('statechange', 'ingame')
     }
 
