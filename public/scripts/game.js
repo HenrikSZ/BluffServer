@@ -137,9 +137,34 @@ function game() {
                 this.drawAtTurn(ctx, x, y + 25)
             }
 
-            ctx.beginPath()
+            /*ctx.beginPath()
             ctx.arc(x, y, 5, 0, 2 * Math.PI, false)
-            ctx.fill()
+            ctx.fill()*/
+        },
+        draw2Players(ctx) {
+            this.drawPlayer(this.players[1], ctx, 600, 300 - 200)
+        },
+        draw3Players(ctx) {
+            this.drawPlayer(this.players[1], ctx, 600 - 400, 300)
+            this.drawPlayer(this.players[2], ctx, 600 + 400, 300)
+        },
+        draw4Players(ctx) {
+            this.drawPlayer(this.players[1], ctx, 600 - 400, 300)
+            this.drawPlayer(this.players[2], ctx, 600, 300 - 200)
+            this.drawPlayer(this.players[3], ctx, 600 + 400, 300)
+        },
+        draw5Players(ctx) {
+            this.drawPlayer(this.players[1], ctx, 600 - 400, 300 + 75)
+            this.drawPlayer(this.players[2], ctx, 600 - 400, 300 - 75)
+            this.drawPlayer(this.players[3], ctx, 600 + 400, 300 - 75)
+            this.drawPlayer(this.players[4], ctx, 600 + 400, 300 + 75)
+        },
+        draw6Players(ctx) {
+            this.drawPlayer(this.players[1], ctx, 600 - 400, 300 + 75)
+            this.drawPlayer(this.players[2], ctx, 600 - 400, 300 - 75)
+            this.drawPlayer(this.players[3], ctx, 600, 300 - 200)
+            this.drawPlayer(this.players[4], ctx, 600 + 400, 300 - 75)
+            this.drawPlayer(this.players[5], ctx, 600 + 400, 300 + 75)
         },
         updateDiceCanvases() {
             const canvas = this.$refs.gameCanvas
@@ -147,25 +172,33 @@ function game() {
 
             ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-            let angle = 0
+            this.drawPlayer(this.players[0], ctx, 600, 300 + 200)
 
-            let deltaAngle = Math.PI / (this.players.length - 2)
-
-            if (this.players.length == 2) {
-                angle += deltaAngle
+            switch(this.players.length) {
+                case 2:
+                    this.draw2Players(ctx)
+                    break
+                case 3:
+                    this.draw3Players(ctx)
+                    break
+                case 4:
+                    this.draw4Players(ctx)
+                    break
+                case 5:
+                    this.draw5Players(ctx)
+                    break
+                case 6:
+                    this.draw6Players(ctx)
+                    break
             }
 
-            this.drawPlayer(this.players[0], ctx, 600, 600 - 100)
-            for (let i = 1; i < this.players.length; i++) {
-                const x = 600 - 400 * Math.cos(angle)
-                const y = 400 - 300 * Math.sin(angle)
-
-                this.drawPlayer(this.players[i], ctx, x, y)
-
-                angle += deltaAngle
-            }
-
-            ctx.fillRect(400, 180, 400, 250)
+            ctx.fillStyle = '#d48300'
+            ctx.strokeStyle = 'black'
+            ctx.lineWidth = 5
+            ctx.beginPath()
+            ctx.rect(600 - 200, 300 - 120, 400, 240)
+            ctx.fill()
+            ctx.stroke()
         },
         createTurnOptionsCanvas() {
             const canvas = document.createElement('canvas')
