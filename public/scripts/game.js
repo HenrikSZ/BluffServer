@@ -166,6 +166,90 @@ function game() {
             this.drawPlayer(this.players[4], ctx, 600 + 400, 300 - 75)
             this.drawPlayer(this.players[5], ctx, 600 + 400, 300 + 75)
         },
+        drawBoard(ctx) {
+            ctx.fillStyle = '#d48300'
+            ctx.strokeStyle = 'black'
+            ctx.lineWidth = 3
+            ctx.beginPath()
+            ctx.rect(600 - 200, 300 - 120, 400, 240)
+            ctx.fill()
+            ctx.stroke()
+
+            let normCounter = 1
+            let starCounter = 1
+
+            for (let i = 0; i < 30; i++) {
+                ctx.font = '20px Arial'
+                ctx.textBaseline = 'alphabetic'
+
+                let toDraw
+                const isStarField = (i - 1) % 3 == 0
+                if (isStarField) {
+                    toDraw = starCounter++
+                }
+                else
+                    toDraw = normCounter++
+
+                const textWidth = ctx.measureText(toDraw).width
+                
+                if (i < 9) {
+                    ctx.beginPath()
+                    ctx.rect(600 - 200 + (400 / 11) * i, 300 - 120, 400 / 11, 60)
+                    if (isStarField) {
+                        ctx.fillStyle = '#875c17'
+                        ctx.fill()
+                    }
+                    ctx.stroke()
+
+                    ctx.fillStyle = 'black'
+
+                    if (isStarField)
+                        ctx.fillText('x', 600 - 200 + 400 / 11 / 2 + (400 / 11) * i - (ctx.measureText(toDraw).width / 2), 300 - 120 + 25)
+                    ctx.drawImage(this.$refs.dicesImage, 1000, 400, 200, 200, 600 - 200 + (400 / 11) * i + ((400 / 11) - (400 / 13)) / 2, 300 - 120 + 4, 400 / 13, 400 / 13)
+                    
+                    ctx.fillText(toDraw, 600 - 200 + 400 / 11 / 2 + (400 / 11) * i - (textWidth / 2), 300 - 120 + 55)
+                }
+                if (i >= 9 && i < 15) {
+                    ctx.beginPath()
+                    ctx.rect(600 - 200 + 400 - (400 / 11) * 2, 300 - 120 + (240 - 60) / 6 * (i - 9), 2 * 400 / 11, (240 - 60) / 6)
+                    if (isStarField) {
+                        ctx.fillStyle = '#875c17'
+                        ctx.fill()
+                    }
+                    ctx.stroke()
+
+                    ctx.fillStyle = 'black'
+
+                    ctx.fillText(toDraw, 600 - 200 + 400 - (400 / 11) * 2 + 12 - (textWidth / 2), 300 - 120 - ((240 - 60) / 6 - 20) / 2 + (240 - 60) / 6 * (i - 9 + 1))
+                }
+                if (i >= 15 && i <= 23) {
+                    ctx.beginPath()
+                    ctx.rect(600 - 200 + 400 - (400 / 11) * (i - 15 + 1), 300 - 120 + 240 - 60, 400 / 11, 60)
+                    if (isStarField) {
+                        ctx.fillStyle = '#875c17'
+                        ctx.fill()
+                    }
+                    ctx.stroke()
+
+                    ctx.fillStyle = 'black'
+
+                    ctx.fillText(toDraw, 600 - 200 + 400 + 400 / 11 / 2 - (400 / 11) * (i - 15 + 1) - (textWidth / 2), 300 - 120 + 240 - 40)
+                }
+                if (i > 23) {
+                    ctx.beginPath()
+                    ctx.rect(600 - 200, 300 - 120 + 240 - (240 - 60) / 6 * (i - 23), 2 * 400 / 11, (240 - 60) / 6)
+                    if (isStarField) {
+                        ctx.fillStyle = '#875c17'
+                        ctx.fill()
+                    }
+                    ctx.stroke()
+
+                    ctx.fillStyle = 'black'
+
+                    //ctx.fillText(toDraw, 600 - 200 + 400 - (400 / 11) * 2 + 12 - (textWidth / 2), 300 - 120 + 60 - ((240 - 2 * 60) / 4 - 20) / 2 + (240 - 2 * 60) / 4 * (i - 11 + 1))
+                }
+            }
+        },
         updateDiceCanvases() {
             const canvas = this.$refs.gameCanvas
             const ctx = canvas.getContext('2d')
@@ -192,13 +276,7 @@ function game() {
                     break
             }
 
-            ctx.fillStyle = '#d48300'
-            ctx.strokeStyle = 'black'
-            ctx.lineWidth = 5
-            ctx.beginPath()
-            ctx.rect(600 - 200, 300 - 120, 400, 240)
-            ctx.fill()
-            ctx.stroke()
+            this.drawBoard(ctx)
         },
         createTurnOptionsCanvas() {
             const canvas = document.createElement('canvas')
