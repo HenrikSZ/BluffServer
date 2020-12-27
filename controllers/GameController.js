@@ -125,6 +125,10 @@ class GameController {
         //let playerAtTurnSocket = socket.player.game.players[socket.player.game.currentTurnIndex].socket
 
         this.io.to(socket.player.game.inviteCode).emit('statechange', 'ingame')
+        this.io.to(socket.player.game.inviteCode).emit('diceposition', {
+            position: 5,
+            face: 5
+        })
     }
 
     handleMove(socket, data) {
