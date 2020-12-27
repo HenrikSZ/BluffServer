@@ -166,12 +166,107 @@ function game() {
             this.drawPlayer(this.players[4], ctx, 600 + 400, 300 - 75)
             this.drawPlayer(this.players[5], ctx, 600 + 400, 300 + 75)
         },
+        drawFieldRect(ctx, isStarField, x, y, w, h) {
+            ctx.beginPath()
+            ctx.rect(x, y, w, h)
+            if (isStarField) {
+                ctx.fillStyle = '#875c17'
+                ctx.fill()
+            }
+            ctx.stroke()
+        },
+        drawCornerField(ctx, number, isStarField, top, left) {
+            const textWidth = ctx.measureText(number).width
+
+            let x, y
+            let textX, textY
+            let diceX, diceY
+            if (top) {
+                y = 300 - 300 / 2
+                textY = y + 70 - 10
+                diceY = y + 4
+            } else {
+                y = 300 + 300 / 2 - 70
+                textY = y + 20 + 5
+                diceY = y + 70 - 30 - 5
+            }
+
+            if (left) {
+                x = 600 - 500 / 2
+                textX = x + 70 - 15 - (textWidth / 2)
+                diceX = x + 4
+            } else {
+                x = 600 + 500 / 2 - 70
+                textX = x + 15 - (textWidth / 2)
+                diceX = x + 70 - 30 - 5
+            }
+
+            this.drawFieldRect(ctx, isStarField, x, y, 70, 70)
+
+            ctx.fillStyle = 'black'
+            ctx.textBaseline = 'alphabetic'
+            ctx.fillText(number, textX, textY)
+
+            ctx.drawImage(this.$refs.dicesImage, 1000, 400, 200, 200, diceX, diceY, 32, 32)
+        },
+        drawStandardField(ctx, number, isStarField, x, y, position) {
+            const textWidth = ctx.measureText(number).width
+
+            let textX, textY
+            let diceX, diceY
+            let w, h
+            switch(position) {
+                case 'top':
+                    w = 40
+                    h = 70
+                    textX = x + 40 / 2 - textWidth / 2
+                    textY = y + 70 - 10
+                    diceX = x + 5
+                    diceY = y + 4
+                    break
+
+                case 'bottom':
+                    w = 40
+                    h = 70
+                    textX = x + 40 / 2 - textWidth / 2
+                    textY = y + 20 + 4
+                    diceX = x + 5
+                    diceY = y + 70 - 30 - 4
+                    break
+
+                case 'left':
+                    w = 70
+                    h = 40
+                    textX = x + 70 - 15 - (textWidth / 2)
+                    textY = y + (40 + 20) / 2
+                    diceX = x + 4
+                    diceY = y + 5
+                    break
+
+                case 'right':
+                    w = 70
+                    h = 40
+                    textX = x + 15 - (textWidth / 2)
+                    textY = y + (40 + 20) / 2
+                    diceX = x + 70 - 30 - 4
+                    diceY = y + 5
+                    break
+            }
+
+            this.drawFieldRect(ctx, isStarField, x, y, w, h)
+
+            ctx.fillStyle = 'black'
+            ctx.textBaseline = 'alphabetic'
+            ctx.fillText(number, textX, textY)
+
+            ctx.drawImage(this.$refs.dicesImage, 1000, 400, 200, 200, diceX, diceY, 30, 30)
+        },
         drawBoard(ctx) {
             ctx.fillStyle = '#d48300'
             ctx.strokeStyle = 'black'
             ctx.lineWidth = 3
             ctx.beginPath()
-            ctx.rect(600 - 200, 300 - 120, 400, 240)
+            ctx.rect(600 - 500 / 2, 300 - 300 / 2, 500, 300)
             ctx.fill()
             ctx.stroke()
 
@@ -192,61 +287,22 @@ function game() {
 
                 const textWidth = ctx.measureText(toDraw).width
                 
-                if (i < 9) {
-                    ctx.beginPath()
-                    ctx.rect(600 - 200 + (400 / 11) * i, 300 - 120, 400 / 11, 60)
-                    if (isStarField) {
-                        ctx.fillStyle = '#875c17'
-                        ctx.fill()
-                    }
-                    ctx.stroke()
-
-                    ctx.fillStyle = 'black'
-
-                    if (isStarField)
-                        ctx.fillText('x', 600 - 200 + 400 / 11 / 2 + (400 / 11) * i - (ctx.measureText(toDraw).width / 2), 300 - 120 + 25)
-                    ctx.drawImage(this.$refs.dicesImage, 1000, 400, 200, 200, 600 - 200 + (400 / 11) * i + ((400 / 11) - (400 / 13)) / 2, 300 - 120 + 4, 400 / 13, 400 / 13)
-                    
-                    ctx.fillText(toDraw, 600 - 200 + 400 / 11 / 2 + (400 / 11) * i - (textWidth / 2), 300 - 120 + 55)
-                }
-                if (i >= 9 && i < 15) {
-                    ctx.beginPath()
-                    ctx.rect(600 - 200 + 400 - (400 / 11) * 2, 300 - 120 + (240 - 60) / 6 * (i - 9), 2 * 400 / 11, (240 - 60) / 6)
-                    if (isStarField) {
-                        ctx.fillStyle = '#875c17'
-                        ctx.fill()
-                    }
-                    ctx.stroke()
-
-                    ctx.fillStyle = 'black'
-
-                    ctx.fillText(toDraw, 600 - 200 + 400 - (400 / 11) * 2 + 12 - (textWidth / 2), 300 - 120 - ((240 - 60) / 6 - 20) / 2 + (240 - 60) / 6 * (i - 9 + 1))
-                }
-                if (i >= 15 && i <= 23) {
-                    ctx.beginPath()
-                    ctx.rect(600 - 200 + 400 - (400 / 11) * (i - 15 + 1), 300 - 120 + 240 - 60, 400 / 11, 60)
-                    if (isStarField) {
-                        ctx.fillStyle = '#875c17'
-                        ctx.fill()
-                    }
-                    ctx.stroke()
-
-                    ctx.fillStyle = 'black'
-
-                    ctx.fillText(toDraw, 600 - 200 + 400 + 400 / 11 / 2 - (400 / 11) * (i - 15 + 1) - (textWidth / 2), 300 - 120 + 240 - 40)
-                }
-                if (i > 23) {
-                    ctx.beginPath()
-                    ctx.rect(600 - 200, 300 - 120 + 240 - (240 - 60) / 6 * (i - 23), 2 * 400 / 11, (240 - 60) / 6)
-                    if (isStarField) {
-                        ctx.fillStyle = '#875c17'
-                        ctx.fill()
-                    }
-                    ctx.stroke()
-
-                    ctx.fillStyle = 'black'
-
-                    //ctx.fillText(toDraw, 600 - 200 + 400 - (400 / 11) * 2 + 12 - (textWidth / 2), 300 - 120 + 60 - ((240 - 2 * 60) / 4 - 20) / 2 + (240 - 2 * 60) / 4 * (i - 11 + 1))
+                if (i == 0) {
+                    this.drawCornerField(ctx, toDraw, isStarField, true, true)
+                } else if (i < 10) {
+                    this.drawStandardField(ctx, toDraw, isStarField, 600 - 500 / 2 + 70 + 40 * (i - 1), 300 - 300 / 2, 'top')
+                } else if (i == 10) {
+                    this.drawCornerField(ctx, toDraw, isStarField, true, false)
+                } else if (i < 15) {
+                    this.drawStandardField(ctx, toDraw, isStarField, 600 + 500 / 2 - 70, 300 - 300 / 2 + 70 + 40 * (i - 11), 'right')
+                } else if (i == 15) {
+                    this.drawCornerField(ctx, toDraw, isStarField, false, false)
+                } else if (i < 25) {
+                    this.drawStandardField(ctx, toDraw, isStarField, 600 + 500 / 2 - 70 - 40 * (i - 16 + 1), 300 + (300 / 2) - 70, 'bottom')
+                } else if (i == 25) {
+                    this.drawCornerField(ctx, toDraw, isStarField, false, true)
+                } else {
+                    this.drawStandardField(ctx, toDraw, isStarField, 600 - 500 / 2, 300 + 300 / 2 - 70 - 40 * (i - 26 + 1), 'left')
                 }
             }
         },
@@ -256,7 +312,7 @@ function game() {
 
             ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-            this.drawPlayer(this.players[0], ctx, 600, 300 + 200)
+            this.drawPlayer(this.players[0], ctx, 600, 300 + 220)
 
             switch(this.players.length) {
                 case 2:
