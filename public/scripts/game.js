@@ -8,9 +8,206 @@ function setCookieValue(key, value, maxAge) {
     document.cookie = `${key}=${value}; max-age=${maxAge}`
 }
 
+class Board {
+    constructor(dicesImage, ctx) {
+        this.fields = []
+
+        let starCounter = 1, normCounter = 1
+
+        for (let i = 0; i < 30; i++) {
+
+            let number
+            const isStarField = (i - 1) % 3 == 0
+            if (isStarField)
+                number = starCounter++
+            else
+                number = normCounter++
+            
+            if (i == 0) {
+                this.fields.push(new CornerField(number, true, true, isStarField, dicesImage, ctx))
+            } else if (i < 10) {
+                this.fields.push(new SimpleField(600 - 500 / 2 + 70 + 40 * (i - 1), 300 - 300 / 2, number, 'top', isStarField, dicesImage, ctx))
+            } else if (i == 10) {
+                this.fields.push(new CornerField(number, true, false, isStarField, dicesImage, ctx))
+            } else if (i < 15) {
+                this.fields.push(new SimpleField(600 + 500 / 2 - 70, 300 - 300 / 2 + 70 + 40 * (i - 11), number, 'right', isStarField, dicesImage, ctx))
+            } else if (i == 15) {
+                this.fields.push(new CornerField(number, false, false, isStarField, dicesImage, ctx))
+            } else if (i < 25) {
+                this.fields.push(new SimpleField(600 + 500 / 2 - 70 - 40 * (i - 16 + 1), 300 + (300 / 2) - 70, number, 'bottom', isStarField, dicesImage, ctx))
+            } else if (i == 25) {
+                this.fields.push(new CornerField(number, false, true, isStarField, dicesImage, ctx))
+            } else {
+                this.fields.push(new SimpleField(600 - 500 / 2, 300 + 300 / 2 - 70 - 40 * (i - 26 + 1), number, 'left', isStarField, dicesImage, ctx))
+            }
+        }
+
+        this.ctx = ctx
+    }
+
+    draw() {
+        this.ctx.fillStyle = '#6cb2eb'
+        this.ctx.strokeStyle = 'black'
+        this.ctx.lineWidth = 3
+        this.ctx.beginPath()
+        this.ctx.rect(600 - 480 / 2, 300 - 180 / 2, 480, 180)
+        this.ctx.fill()
+        this.ctx.stroke()
+
+        this.fields.forEach(f => f.draw())
+    }
+
+    setMovableFrom(targetIndex) {
+        this.fields.forEach((f, index) => {
+            if (index < targetIndex)
+                f.isMovable = false
+            else
+                f.isMovable = true
+        })
+    }
+
+    setDicePosition(dice) {
+        this.fields.forEach((f, i) => {
+            if (f.diceFace)
+                f.dice = undefined
+            
+            if (i === dice.position)
+                f.dice = dice.face
+        })
+    }
+}
+
+class Field {
+    constructor(x, y, textX, textY, diceX, diceY, w, h, number, isStar, dicesImage, ctx) {
+        this.x = x
+        this.y = y
+        this.w = w
+        this.h = h
+        this.textX = textX
+        this.textY = textY
+        this.diceX = diceX
+        this.diceY = diceY
+        this.number = number
+        this.isStar = isStar
+        this.isMovable = false
+        this.dicesImage = dicesImage
+        this.dice = undefined
+        this.ctx = ctx
+    }
+
+    draw() {
+        this.ctx.beginPath()
+        this.ctx.rect(this.x, this.y, this.w, this.h)
+        if (this.isMovable)
+            if (this.isStar)
+                this.ctx.fillStyle = '#bfaa08'
+            else
+                this.ctx.fillStyle = '#ffe100'
+        else
+            if (this.isStar)
+                this.ctx.fillStyle = '#875c17'
+            else
+                this.ctx.fillStyle = '#d48300'
+                
+        this.ctx.fill()
+        this.ctx.stroke()
+
+        this.ctx.fillStyle = 'black'
+        this.ctx.textBaseline = 'alphabetic'
+        this.ctx.fillText(this.number, this.textX, this.textY)
+
+        if (typeof this.dice === 'number')
+            this.ctx.drawImage(this.$refs.dicesImage, this.dice * 200, 400, 200, 200, this.diceX, this.diceY, 32, 32)
+    }
+}
+
+class CornerField extends Field {
+    constructor(number, top, left, isStar, dicesImage, ctx) {
+        ctx.font = '20px black Arial'
+        const textWidth = ctx.measureText(number).width
+
+        let x, y, w, h, textX, textY, diceX, diceY
+
+        if (top) {
+            y = 300 - 300 / 2
+            textY = y + 70 - 10
+            diceY = y + 4
+        } else {
+            y = 300 + 300 / 2 - 70
+            textY = y + 20 + 5
+            diceY = y + 70 - 30 - 5
+        }
+
+        if (left) {
+            x = 600 - 500 / 2
+            textX = x + 70 - 15 - (textWidth / 2)
+            diceX = x + 4
+        } else {
+            x = 600 + 500 / 2 - 70
+            textX = x + 15 - (textWidth / 2)
+            diceX = x + 70 - 30 - 5
+        }
+
+        w = 70
+        h = 70
+
+        super(x, y, textX, textY, diceX, diceY, w, h, number, isStar, dicesImage, ctx)
+    }
+}
+
+class SimpleField extends Field {
+    constructor(x, y, number, position, isStar, dicesImage, ctx) {
+        ctx.font = '20px black Arial'
+        const textWidth = ctx.measureText(number).width
+
+        let w, h, textX, textY, diceX, diceY
+
+        switch(position) {
+            case 'top':
+                w = 40
+                h = 70
+                textX = x + 40 / 2 - textWidth / 2
+                textY = y + 70 - 10
+                diceX = x + 5
+                diceY = y + 4
+                break
+
+            case 'bottom':
+                w = 40
+                h = 70
+                textX = x + 40 / 2 - textWidth / 2
+                textY = y + 20 + 4
+                diceX = x + 5
+                diceY = y + 70 - 30 - 4
+                break
+
+            case 'left':
+                w = 70
+                h = 40
+                textX = x + 70 - 15 - (textWidth / 2)
+                textY = y + (40 + 20) / 2
+                diceX = x + 4
+                diceY = y + 5
+                break
+
+            case 'right':
+                w = 70
+                h = 40
+                textX = x + 15 - (textWidth / 2)
+                textY = y + (40 + 20) / 2
+                diceX = x + 70 - 30 - 4
+                diceY = y + 5
+                break
+        }
+
+        super(x, y, textX, textY, diceX, diceY, w, h, number, isStar, dicesImage, ctx)
+    }
+}
+
 function game() {
     return {
         gameState: '',
+        board: false,
         players: [],
         game: {},
         player: {
@@ -19,6 +216,8 @@ function game() {
         authenticated: false,
         rejoin: false,
         dice: {},
+        targetDice: this.dice,
+        showMoveOptions: true,
         connectSocketIO() {
             this.socket = io()
 
@@ -34,7 +233,7 @@ function game() {
                 console.log(`game.playerlist`)
                 this.players = data
 
-                this.updateDiceCanvas()
+                this.drawCanvas()
             })
             this.socket.on('playerinfo', data => {
                 console.log(`game.playerinfo`)
@@ -43,8 +242,10 @@ function game() {
             this.socket.on('diceposition', data => {
                 console.log(`game.diceposition`)
                 this.dice = data
+                this.targetDice = data
 
-                this.redrawBoard()
+                this.board.setDicePosition(dice)
+                this.board.draw()
             })
 
             if (this.rejoin) {
@@ -53,6 +254,8 @@ function game() {
             } else {
                 this.gameState = 'set-username'
             }
+
+            this.board = new Board(this.$refs.dicesImage, this.$refs.gameCanvas.getContext('2d'))
         },
         authSocketIO() {
             this.socket.on('auth-response', data => {
@@ -135,10 +338,6 @@ function game() {
             if (player.atTurn) {
                 this.drawAtTurn(ctx, x, y + 25)
             }
-
-            /*ctx.beginPath()
-            ctx.arc(x, y, 5, 0, 2 * Math.PI, false)
-            ctx.fill()*/
         },
         draw2Players(ctx) {
             this.drawPlayer(this.players[1], ctx, 600, 300 - 200)
@@ -165,155 +364,7 @@ function game() {
             this.drawPlayer(this.players[4], ctx, 600 + 400, 300 - 75)
             this.drawPlayer(this.players[5], ctx, 600 + 400, 300 + 75)
         },
-        drawFieldRect(ctx, isStarField, x, y, w, h) {
-            ctx.beginPath()
-            ctx.rect(x, y, w, h)
-            if (isStarField) {
-                ctx.fillStyle = '#875c17'
-                ctx.fill()
-            }
-            ctx.stroke()
-        },
-        drawCornerField(ctx, number, isStarField, top, left, dice) {
-            const textWidth = ctx.measureText(number).width
-
-            let x, y
-            let textX, textY
-            let diceX, diceY
-            if (top) {
-                y = 300 - 300 / 2
-                textY = y + 70 - 10
-                diceY = y + 4
-            } else {
-                y = 300 + 300 / 2 - 70
-                textY = y + 20 + 5
-                diceY = y + 70 - 30 - 5
-            }
-
-            if (left) {
-                x = 600 - 500 / 2
-                textX = x + 70 - 15 - (textWidth / 2)
-                diceX = x + 4
-            } else {
-                x = 600 + 500 / 2 - 70
-                textX = x + 15 - (textWidth / 2)
-                diceX = x + 70 - 30 - 5
-            }
-
-            this.drawFieldRect(ctx, isStarField, x, y, 70, 70)
-
-            ctx.fillStyle = 'black'
-            ctx.textBaseline = 'alphabetic'
-            ctx.fillText(number, textX, textY)
-
-            if (typeof dice === 'number')
-                ctx.drawImage(this.$refs.dicesImage, dice * 200, 400, 200, 200, diceX, diceY, 32, 32)
-        },
-        drawStandardField(ctx, number, isStarField, x, y, position, dice) {
-            const textWidth = ctx.measureText(number).width
-
-            let textX, textY
-            let diceX, diceY
-            let w, h
-            switch(position) {
-                case 'top':
-                    w = 40
-                    h = 70
-                    textX = x + 40 / 2 - textWidth / 2
-                    textY = y + 70 - 10
-                    diceX = x + 5
-                    diceY = y + 4
-                    break
-
-                case 'bottom':
-                    w = 40
-                    h = 70
-                    textX = x + 40 / 2 - textWidth / 2
-                    textY = y + 20 + 4
-                    diceX = x + 5
-                    diceY = y + 70 - 30 - 4
-                    break
-
-                case 'left':
-                    w = 70
-                    h = 40
-                    textX = x + 70 - 15 - (textWidth / 2)
-                    textY = y + (40 + 20) / 2
-                    diceX = x + 4
-                    diceY = y + 5
-                    break
-
-                case 'right':
-                    w = 70
-                    h = 40
-                    textX = x + 15 - (textWidth / 2)
-                    textY = y + (40 + 20) / 2
-                    diceX = x + 70 - 30 - 4
-                    diceY = y + 5
-                    break
-            }
-
-            this.drawFieldRect(ctx, isStarField, x, y, w, h)
-
-            ctx.fillStyle = 'black'
-            ctx.textBaseline = 'alphabetic'
-            ctx.fillText(number, textX, textY)
-
-            if (typeof dice === 'number')
-                ctx.drawImage(this.$refs.dicesImage, 1000, 400, 200, 200, diceX, diceY, 30, 30)
-        },
-        drawBoard(ctx) {
-            ctx.fillStyle = '#d48300'
-            ctx.strokeStyle = 'black'
-            ctx.lineWidth = 3
-            ctx.beginPath()
-            ctx.rect(600 - 500 / 2, 300 - 300 / 2, 500, 300)
-            ctx.fill()
-            ctx.stroke()
-
-            let normCounter = 1
-            let starCounter = 1
-
-            for (let i = 0; i < 30; i++) {
-                ctx.font = '20px Arial'
-                ctx.textBaseline = 'alphabetic'
-
-                let toDraw
-                const isStarField = (i - 1) % 3 == 0
-                if (isStarField) {
-                    toDraw = starCounter++
-                }
-                else
-                    toDraw = normCounter++
-
-                const diceFace = this.dice.position === i ? this.dice.face : undefined
-                
-                if (i == 0) {
-                    this.drawCornerField(ctx, toDraw, isStarField, true, true, diceFace)
-                } else if (i < 10) {
-                    this.drawStandardField(ctx, toDraw, isStarField, 600 - 500 / 2 + 70 + 40 * (i - 1), 300 - 300 / 2, 'top', diceFace)
-                } else if (i == 10) {
-                    this.drawCornerField(ctx, toDraw, isStarField, true, false, diceFace)
-                } else if (i < 15) {
-                    this.drawStandardField(ctx, toDraw, isStarField, 600 + 500 / 2 - 70, 300 - 300 / 2 + 70 + 40 * (i - 11), 'right', diceFace)
-                } else if (i == 15) {
-                    this.drawCornerField(ctx, toDraw, isStarField, false, false, diceFace)
-                } else if (i < 25) {
-                    this.drawStandardField(ctx, toDraw, isStarField, 600 + 500 / 2 - 70 - 40 * (i - 16 + 1), 300 + (300 / 2) - 70, 'bottom', diceFace)
-                } else if (i == 25) {
-                    this.drawCornerField(ctx, toDraw, isStarField, false, true, diceFace)
-                } else {
-                    this.drawStandardField(ctx, toDraw, isStarField, 600 - 500 / 2, 300 + 300 / 2 - 70 - 40 * (i - 26 + 1), 'left', diceFace)
-                }
-            }
-        },
-        redrawBoard() {
-            const canvas = this.$refs.gameCanvas
-            const ctx = canvas.getContext('2d')
-
-            this.drawBoard(ctx)
-        },
-        updateDiceCanvas() {
+        drawCanvas() {
             const canvas = this.$refs.gameCanvas
             const ctx = canvas.getContext('2d')
 
@@ -339,21 +390,7 @@ function game() {
                     break
             }
 
-            this.drawBoard(ctx)
-        },
-        createTurnOptionsCanvas() {
-            const canvas = document.createElement('canvas')
-            canvas.width = 20 * 20 + 19 * 5
-            canvas.height = 20 * 2 + 20
-
-            const ctx = canvas.getContext('2d')
-
-            for (let i = 1; i <= 6; i++) {
-                ctx.drawImage(this.$refs.dicesImage, (i - 1) * 200, 0, 200, 200, (20 + 5) * i, 0, 20, 20)
-            }
-            for (let i = 0; i < 20; i++) {
-                ctx.drawImage(this.$refs.fieldsImage, i * 100, 0, 100, 100, (20 + 5) * i, 40, 20, 20)
-            }
+            this.board.draw(ctx)
         },
         isIngame() {
             return this.gameState === 'ingame' || this.gameState === 'atturn'

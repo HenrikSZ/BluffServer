@@ -45,7 +45,7 @@ class Game {
         i++
 
         if (i == this.players.length)
-        i = 0
+            i = 0
 
         while (this.players[i] != player) {
             target.push({

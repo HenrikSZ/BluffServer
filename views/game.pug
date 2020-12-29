@@ -12,7 +12,6 @@ html
         div(id='wrapper', class="p-4 text-center")
             div(x-data="game()", x-init=`username = '${player ? player.username : ''}'; rejoin = ${player ? !!player.game : false}; connectSocketIO()`)
                 img(class="d-none" src="/images/dices.png" x-ref="dicesImage")
-                img(class="d-none" src="/images/fields.png" x-ref="fieldsImage")
                 div(class='jumbotron text-center')
                     h1(class="text-primary") Bluff Online
                 
@@ -55,3 +54,5 @@ html
                             div(x-ref="ownTurnOptionsCanvasParent")
                     div(class="text-center")
                         canvas(class="border border-primary" x-ref="gameCanvas" width="1200px" height="600px")
+
+                    button(x-show="showMoveOptions" @click="console.log('Player assumes lying')" class="btn btn-primary") It's a lie
