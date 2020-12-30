@@ -12,6 +12,10 @@ class Game {
         this.inviteCode = crypto.randomBytes(4).toString('hex')
         this.state = 'lobby'
         this.currentTurnIndex = 0
+        this.dicePosition = {
+            face: 0,
+            position: -1
+        }
     }
 
     getPublicPlayerList() {

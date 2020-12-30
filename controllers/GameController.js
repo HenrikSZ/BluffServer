@@ -39,6 +39,7 @@ class GameController {
 
         socket.emit('gameinfo', socket.player.game.getPublicGameInfo())
         socket.emit('playerlist', socket.player.game.getCustomPlayerList(socket.player))
+        socket.emit('diceposition', socket.player.game.dicePosition)
         socket.emit('statechange', socket.player.game.state)
     }
 
@@ -125,10 +126,7 @@ class GameController {
         //let playerAtTurnSocket = socket.player.game.players[socket.player.game.currentTurnIndex].socket
 
         this.io.to(socket.player.game.inviteCode).emit('statechange', 'ingame')
-        this.io.to(socket.player.game.inviteCode).emit('diceposition', {
-            position: 5,
-            face: 5
-        })
+        this.io.to(socket.player.game.inviteCode).emit('diceposition', socket.player.game.dicePosition)
     }
 
     handleMove(socket, data) {

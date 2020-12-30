@@ -42,19 +42,18 @@ class Board {
             }
         }
 
-        this.ctx = ctx
     }
 
-    draw() {
-        this.ctx.fillStyle = '#6cb2eb'
-        this.ctx.strokeStyle = 'black'
-        this.ctx.lineWidth = 3
-        this.ctx.beginPath()
-        this.ctx.rect(600 - 480 / 2, 300 - 180 / 2, 480, 180)
-        this.ctx.fill()
-        this.ctx.stroke()
+    draw(ctx) {
+        ctx.fillStyle = '#6cb2eb'
+        ctx.strokeStyle = 'black'
+        ctx.lineWidth = 3
+        ctx.beginPath()
+        ctx.rect(600 - 480 / 2, 300 - 180 / 2, 480, 180)
+        ctx.fill()
+        ctx.stroke()
 
-        this.fields.forEach(f => f.draw())
+        this.fields.forEach(f => f.draw(ctx))
     }
 
     setMovableFrom(targetIndex) {
@@ -78,7 +77,7 @@ class Board {
 }
 
 class Field {
-    constructor(x, y, textX, textY, diceX, diceY, w, h, number, isStar, dicesImage, ctx) {
+    constructor(x, y, textX, textY, diceX, diceY, w, h, number, isStar, dicesImage) {
         this.x = x
         this.y = y
         this.w = w
@@ -92,32 +91,31 @@ class Field {
         this.isMovable = false
         this.dicesImage = dicesImage
         this.dice = undefined
-        this.ctx = ctx
     }
 
-    draw() {
-        this.ctx.beginPath()
-        this.ctx.rect(this.x, this.y, this.w, this.h)
+    draw(ctx) {
+        ctx.beginPath()
+        ctx.rect(this.x, this.y, this.w, this.h)
         if (this.isMovable)
             if (this.isStar)
-                this.ctx.fillStyle = '#bfaa08'
+                ctx.fillStyle = '#bfaa08'
             else
-                this.ctx.fillStyle = '#ffe100'
+                ctx.fillStyle = '#ffe100'
         else
             if (this.isStar)
-                this.ctx.fillStyle = '#875c17'
+                ctx.fillStyle = '#875c17'
             else
-                this.ctx.fillStyle = '#d48300'
+                ctx.fillStyle = '#d48300'
                 
-        this.ctx.fill()
-        this.ctx.stroke()
+        ctx.fill()
+        ctx.stroke()
 
-        this.ctx.fillStyle = 'black'
-        this.ctx.textBaseline = 'alphabetic'
-        this.ctx.fillText(this.number, this.textX, this.textY)
+        ctx.fillStyle = 'black'
+        ctx.textBaseline = 'alphabetic'
+        ctx.fillText(this.number, this.textX, this.textY)
 
         if (typeof this.dice === 'number')
-            this.ctx.drawImage(this.$refs.dicesImage, this.dice * 200, 400, 200, 200, this.diceX, this.diceY, 32, 32)
+            ctx.drawImage(this.dicesImage, this.dice * 200, 400, 200, 200, this.diceX, this.diceY, 32, 32)
     }
 }
 
@@ -151,7 +149,7 @@ class CornerField extends Field {
         w = 70
         h = 70
 
-        super(x, y, textX, textY, diceX, diceY, w, h, number, isStar, dicesImage, ctx)
+        super(x, y, textX, textY, diceX, diceY, w, h, number, isStar, dicesImage)
     }
 }
 
@@ -200,7 +198,126 @@ class SimpleField extends Field {
                 break
         }
 
-        super(x, y, textX, textY, diceX, diceY, w, h, number, isStar, dicesImage, ctx)
+        super(x, y, textX, textY, diceX, diceY, w, h, number, isStar, dicesImage)
+    }
+}
+
+class Player {
+    constructor(playerData, x, y, dicesImage, ctx) {
+        this.playerData = playerData
+        this.x = x
+        this.y = y
+
+        this.dicesImage = dicesImage
+
+        this.currentTurnTextX = x - ctx.measureText('current turn').width / 2
+        this.nameX = x - ctx.measureText(playerData.username).width / 2
+    }
+
+    drawName(ctx) {
+        ctx.font = '20px sans-serif'
+        ctx.fillStyle = 'black'
+        ctx.textBaseline = 'top'
+        ctx.fillText(this.playerData.username, this.nameX, this.y - 55)
+    }
+
+    drawDices(ctx) {
+        const spacing = 50 / 10
+
+        const totalWidth = this.playerData.dices.length * 50 + (this.playerData.dices.length - 1) * spacing
+
+        this.playerData.dices.forEach((d, index) => {
+            ctx.drawImage(this.dicesImage, d * 200, d.highlighted ? 200 : 0, 200, 200, this.x - totalWidth / 2 + (50 + spacing) * index, this.y - 30, 50, 50)
+        })
+    }
+
+    drawAtTurn(ctx) {
+        const rectX = this.x - 200 / 2
+
+        ctx.fillStyle = '#bde7f0'
+        ctx.fillRect(rectX, this.y + 25, 200, 30)
+
+        ctx.strokeStyle = '#0720b0'
+        ctx.strokeRect(rectX, this.y + 25, 200, 30)
+
+        ctx.fillStyle = '#0720b0'
+        ctx.textBaseline = 'middle'
+        ctx.fillText('current turn', this.currentTurnTextX, this.y + 25 + 15)
+    }
+
+    draw(ctx) {
+        this.drawName(ctx)
+        this.drawDices(ctx)
+        if (this.playerData.atTurn) {
+            this.drawAtTurn(ctx)
+        }
+    }
+}
+
+class GameCanvas {
+    constructor(canvas, dicesImage, players) {
+        this.canvas = canvas
+        this.ctx = canvas.getContext('2d')
+        this.board = new Board(dicesImage, this.ctx)
+
+        this.players = []
+        
+        this.players.push(new Player(players[0], 600, 300 + 220, dicesImage, this.ctx))
+
+        switch(players.length) {
+            case 2:
+                this.create2Players(players, dicesImage, ctx)
+                break
+            case 3:
+                this.create3Players(players, dicesImage, ctx)
+                break
+            case 4:
+                this.create4Players(players, dicesImage, ctx)
+                break
+            case 5:
+                this.create5Players(players, dicesImage, ctx)
+                break
+            case 6:
+                this.create6Players(players, dicesImage, ctx)
+                break
+        }
+    }
+
+    draw() {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
+
+        this.players.forEach(p => p.draw(this.ctx))
+        this.board.draw(this.ctx)
+    }
+
+    create2Players(players, dicesImage, ctx) {
+        this.players.push(new Player(players[1], 600, 300 - 200, dicesImage, ctx))
+    }
+
+    create3Players(players, dicesImage, ctx) {
+        this.players.push(new Player(players[1], 600 - 400, 300, dicesImage, ctx))
+        this.players.push(new Player(players[2], 600 + 400, 300, dicesImage, ctx))
+    }
+
+    create4Players(players, dicesImage, ctx) {
+        this.players.push(new Player(players[1], 600 - 400, 300, dicesImage, ctx))
+        this.players.push(new Player(players[2], 600, 300 - 200, dicesImage, ctx))
+        this.players.push(new Player(players[3], 600 + 400, 300, dicesImage, ctx))
+    }
+
+    create5Players(players, dicesImage, ctx) {
+        this.players.push(new Player(players[1], 600 - 400, 300 + 75, dicesImage, ctx))
+        this.players.push(new Player(players[2], 600 - 400, 300 - 75, dicesImage, ctx))
+        this.players.push(new Player(players[3], 600 + 400, 300 - 75, dicesImage, ctx))
+        this.players.push(new Player(players[4], 600 + 400, 300 + 75, dicesImage, ctx))
+    }
+
+    create6Players(players, dicesImage, ctx) {
+        this.players.push(new Player(players[1], 600 - 400, 300 + 75, dicesImage, ctx))
+        this.players.push(new Player(players[2], 600 - 400, 300 - 75, dicesImage, ctx))
+        this.players.push(new Player(players[3], 600, 300 - 200, dicesImage, ctx))
+        this.players.push(new Player(players[4], 600 + 400, 300 - 75, dicesImage, ctx))
+        this.players.push(new Player(players[5], 600 + 400, 300 + 75, dicesImage, ctx))
     }
 }
 
@@ -233,7 +350,8 @@ function game() {
                 console.log(`game.playerlist`)
                 this.players = data
 
-                this.drawCanvas()
+                this.gameCanvas = new GameCanvas(this.$refs.gameCanvas, this.$refs.dicesImage, data)
+                this.gameCanvas.draw()
             })
             this.socket.on('playerinfo', data => {
                 console.log(`game.playerinfo`)
@@ -244,8 +362,10 @@ function game() {
                 this.dice = data
                 this.targetDice = data
 
-                this.board.setDicePosition(dice)
-                this.board.draw()
+                this.gameCanvas.board.setDicePosition(data)
+                if (this.players[0].atTurn)
+                    this.gameCanvas.board.setMovableFrom(data.position)
+                this.gameCanvas.draw()
             })
 
             if (this.rejoin) {
@@ -254,8 +374,6 @@ function game() {
             } else {
                 this.gameState = 'set-username'
             }
-
-            this.board = new Board(this.$refs.dicesImage, this.$refs.gameCanvas.getContext('2d'))
         },
         authSocketIO() {
             this.socket.on('auth-response', data => {
@@ -298,99 +416,6 @@ function game() {
             if (this.game && this.player.isAdmin) {
                 this.socket.emit('start')
             }
-        },
-        drawName(name, ctx, x, y) {
-            ctx.font = '20px sans-serif'
-
-            const nameWidth = ctx.measureText(name).width
-            ctx.fillStyle = 'black'
-            ctx.textBaseline = 'top'
-            ctx.fillText(name, x  - nameWidth / 2, y)
-        },
-        drawDices(dices, diceSize, ctx, x, y) {
-            const spacing = (diceSize / 10)
-
-            const totalWidth = dices.length * diceSize + (dices.length - 1) * spacing
-            x = x - totalWidth / 2
-
-            dices.forEach((d, index) => {
-                ctx.drawImage(this.$refs.dicesImage, d * 200, d.highlighted ? 200 : 0, 200, 200, x + (diceSize + spacing) * index, y, diceSize, diceSize)
-            })
-        },
-        drawAtTurn(ctx, x, y) {
-            const rectX = x - 200 / 2
-
-            ctx.fillStyle = '#bde7f0'
-            ctx.fillRect(rectX, y, 200, 30)
-
-            ctx.strokeStyle = '#0720b0'
-            ctx.strokeRect(rectX, y, 200, 30)
-
-            const textX = x - ctx.measureText('current turn').width / 2
-
-            ctx.fillStyle = '#0720b0'
-            ctx.textBaseline = 'middle'
-            ctx.fillText('current turn', textX, y + 15)
-        },
-        drawPlayer(player, ctx, x, y) {
-            this.drawName(player.username, ctx, x, y - 55)
-            this.drawDices(player.dices, 50, ctx, x, y - 30)
-            if (player.atTurn) {
-                this.drawAtTurn(ctx, x, y + 25)
-            }
-        },
-        draw2Players(ctx) {
-            this.drawPlayer(this.players[1], ctx, 600, 300 - 200)
-        },
-        draw3Players(ctx) {
-            this.drawPlayer(this.players[1], ctx, 600 - 400, 300)
-            this.drawPlayer(this.players[2], ctx, 600 + 400, 300)
-        },
-        draw4Players(ctx) {
-            this.drawPlayer(this.players[1], ctx, 600 - 400, 300)
-            this.drawPlayer(this.players[2], ctx, 600, 300 - 200)
-            this.drawPlayer(this.players[3], ctx, 600 + 400, 300)
-        },
-        draw5Players(ctx) {
-            this.drawPlayer(this.players[1], ctx, 600 - 400, 300 + 75)
-            this.drawPlayer(this.players[2], ctx, 600 - 400, 300 - 75)
-            this.drawPlayer(this.players[3], ctx, 600 + 400, 300 - 75)
-            this.drawPlayer(this.players[4], ctx, 600 + 400, 300 + 75)
-        },
-        draw6Players(ctx) {
-            this.drawPlayer(this.players[1], ctx, 600 - 400, 300 + 75)
-            this.drawPlayer(this.players[2], ctx, 600 - 400, 300 - 75)
-            this.drawPlayer(this.players[3], ctx, 600, 300 - 200)
-            this.drawPlayer(this.players[4], ctx, 600 + 400, 300 - 75)
-            this.drawPlayer(this.players[5], ctx, 600 + 400, 300 + 75)
-        },
-        drawCanvas() {
-            const canvas = this.$refs.gameCanvas
-            const ctx = canvas.getContext('2d')
-
-            ctx.clearRect(0, 0, canvas.width, canvas.height)
-
-            this.drawPlayer(this.players[0], ctx, 600, 300 + 220)
-
-            switch(this.players.length) {
-                case 2:
-                    this.draw2Players(ctx)
-                    break
-                case 3:
-                    this.draw3Players(ctx)
-                    break
-                case 4:
-                    this.draw4Players(ctx)
-                    break
-                case 5:
-                    this.draw5Players(ctx)
-                    break
-                case 6:
-                    this.draw6Players(ctx)
-                    break
-            }
-
-            this.board.draw(ctx)
         },
         isIngame() {
             return this.gameState === 'ingame' || this.gameState === 'atturn'
