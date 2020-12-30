@@ -8,8 +8,29 @@ function setCookieValue(key, value, maxAge) {
     document.cookie = `${key}=${value}; max-age=${maxAge}`
 }
 
+class ChooseBubble {
+    constructor(dicesImage, bubbleImage) {
+        this.bubbleImage = bubbleImage
+        this.dicesImage = dicesImage
+
+        this.isVisible = false
+        this.x = 0
+        this.y = 0
+    }
+
+    draw(ctx) {
+        if (this.isVisible)
+            ctx.drawImage(this.bubbleImage, this.x, this.y)
+    }
+
+    setForTarget(x, y) {
+        this.x = x - 370 / 2
+        this.y = y - 100
+    }
+}
+
 class Board {
-    constructor(dicesImage, ctx) {
+    constructor(dicesImage, bubbleImage, ctx) {
         this.fields = []
 
         let starCounter = 1, normCounter = 1
@@ -42,6 +63,7 @@ class Board {
             }
         }
 
+        this.chooseBubble = new ChooseBubble(dicesImage, bubbleImage)
     }
 
     draw(ctx) {
@@ -54,6 +76,7 @@ class Board {
         ctx.stroke()
 
         this.fields.forEach(f => f.draw(ctx))
+        this.chooseBubble.draw(ctx)
     }
 
     setMovableFrom(targetIndex) {
@@ -74,6 +97,24 @@ class Board {
                 f.dice = dice.face
         })
     }
+
+    onClick(x, y) {
+        let ret = false
+
+        if (x >= 600 - 500 / 2 && x <= 600 + 500 / 2 && y >= 300 - 300 / 2 && y <= 300 + 300 / 2) {
+            for (let f of this.fields) {
+                if (f.onClick(x, y))
+                    ret = true
+            }
+        }
+
+        if (ret) {
+            this.chooseBubble.setForTarget(x, y)
+            this.chooseBubble.isVisible = true
+        }
+
+        return ret
+    }
 }
 
 class Field {
@@ -91,13 +132,16 @@ class Field {
         this.isMovable = false
         this.dicesImage = dicesImage
         this.dice = undefined
+        this.isSelected = false
     }
 
     draw(ctx) {
         ctx.beginPath()
         ctx.rect(this.x, this.y, this.w, this.h)
         if (this.isMovable)
-            if (this.isStar)
+            if (this.isSelected)
+                ctx.fillStyle = '#d62b04'
+            else if (this.isStar)
                 ctx.fillStyle = '#bfaa08'
             else
                 ctx.fillStyle = '#ffe100'
@@ -116,6 +160,26 @@ class Field {
 
         if (typeof this.dice === 'number')
             ctx.drawImage(this.dicesImage, this.dice * 200, 400, 200, 200, this.diceX, this.diceY, 32, 32)
+    }
+
+    onClick(x, y) {
+        let ret = false
+
+        if (x >= this.x && x < this.x + this.w && y >= this.y && y < this.y + this.h) {
+            if (!this.isSelected) {
+                if (this.isMovable) {
+                    this.isSelected = true
+                    ret = true
+                }
+            }
+        } else {
+            if (this.isSelected) {
+                this.isSelected = false
+                ret = true
+            }
+        }
+
+        return ret
     }
 }
 
@@ -255,10 +319,12 @@ class Player {
 }
 
 class GameCanvas {
-    constructor(canvas, dicesImage, players) {
+    constructor(canvas, dicesImage, bubbleImage, players) {
         this.canvas = canvas
         this.ctx = canvas.getContext('2d')
-        this.board = new Board(dicesImage, this.ctx)
+        this.board = new Board(dicesImage, bubbleImage, this.ctx)
+
+        this.canvas.addEventListener('click', this.onClick.bind(this))
 
         this.players = []
         
@@ -319,6 +385,16 @@ class GameCanvas {
         this.players.push(new Player(players[4], 600 + 400, 300 - 75, dicesImage, ctx))
         this.players.push(new Player(players[5], 600 + 400, 300 + 75, dicesImage, ctx))
     }
+
+    onClick(event) {
+        let rect = this.canvas.getBoundingClientRect()
+        let x = event.clientX - rect.left
+        let y = event.clientY - rect.top
+
+        if (this.board.onClick(x, y)) {
+            this.draw()
+        }
+    }
 }
 
 function game() {
@@ -350,7 +426,7 @@ function game() {
                 console.log(`game.playerlist`)
                 this.players = data
 
-                this.gameCanvas = new GameCanvas(this.$refs.gameCanvas, this.$refs.dicesImage, data)
+                this.gameCanvas = new GameCanvas(this.$refs.gameCanvas, this.$refs.dicesImage, this.$refs.bubbleImage, data)
                 this.gameCanvas.draw()
             })
             this.socket.on('playerinfo', data => {
