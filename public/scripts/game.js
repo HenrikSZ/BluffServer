@@ -138,6 +138,8 @@ class Board {
         this.fields[this.dice.position].dice = null
         this.fields[dice.position].dice = dice.face
 
+        this.setMovableFrom(dice.position)
+
         this.dice = dice
     }
 
@@ -179,6 +181,9 @@ class Board {
             if (ret) {
                 this.chooseBubble.setForTarget(x, y)
                 this.chooseBubble.allowOnlyStarOption = this.fields[this.selectedField].isStar
+                if (this.selectedField == 0 || !this.fields[this.selectedField - 1].isMovable) {
+                    this.chooseBubble.allowFrom = this.dice.face + 1
+                }
                 this.chooseBubble.isVisible = true
             }
         }
