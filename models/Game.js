@@ -14,7 +14,7 @@ class Game {
         this.currentTurnIndex = 0
         this.dicePosition = {
             face: 0,
-            position: -1
+            position: 0
         }
     }
 

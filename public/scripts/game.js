@@ -9,28 +9,71 @@ function setCookieValue(key, value, maxAge) {
 }
 
 class ChooseBubble {
-    constructor(dicesImage, bubbleImage) {
+    constructor(dicesImage, bubbleImage, board) {
         this.bubbleImage = bubbleImage
         this.dicesImage = dicesImage
 
         this.isVisible = false
+        this.allowOnlyStarOption = false
+        this.allowFrom = 1
         this.x = 0
         this.y = 0
+
+        this.board = board
     }
 
     draw(ctx) {
-        if (this.isVisible)
+        if (this.isVisible) {
             ctx.drawImage(this.bubbleImage, this.x, this.y)
+            for (let i = 1; i <= 6; i++) {
+                if (i < this.allowFrom || this.allowOnlyStarOption && i < 6 || !this.allowOnlyStarOption && i == 6) {
+                    ctx.globalAlpha = 0.1
+                }
+                ctx.drawImage(this.dicesImage, 200 * i, 400, 200, 200, this.x + 10 + (50 + 10) * (i - 1), this.y + 10, 50, 50)
+
+                ctx.globalAlpha = 1.0
+            }
+        }
     }
 
     setForTarget(x, y) {
         this.x = x - 370 / 2
         this.y = y - 100
     }
+
+    onClick(x, y) {
+        if (this.isVisible && x >= this.x + 10 && x < this.x + 6 * (50 + 10) && y >= this.y + 10 && y < this.y + 10 + 50) {
+            x = x - this.x - 10
+            
+            let delta = x % 60
+            if (delta <= 50) {
+                let v = (x - delta) / 60 + 1
+
+                if (this.allowOnlyStarOption) {
+                    if (v == 6) {
+                        this.board.setDiceFaceForSelected(v)
+                        this.isVisible = false
+                    }
+                } else {
+                    if (v >= this.allowFrom && v != 6) {
+                        this.board.setDiceFaceForSelected(v)
+                        this.isVisible = false
+                    }
+                }
+            }
+            return true
+
+        } else {
+            this.isVisible = false
+            this.board.setDiceFaceForSelected(-1)
+
+            return false
+        }
+    }
 }
 
 class Board {
-    constructor(dicesImage, bubbleImage, ctx) {
+    constructor(dicesImage, bubbleImage, gameCanvas, ctx) {
         this.fields = []
 
         let starCounter = 1, normCounter = 1
@@ -63,7 +106,10 @@ class Board {
             }
         }
 
-        this.chooseBubble = new ChooseBubble(dicesImage, bubbleImage)
+        this.chooseBubble = new ChooseBubble(dicesImage, bubbleImage, this)
+        this.selectedField = -1
+        this.dice = { position: 0, diceFace: 0 }
+        this.gameCanvas = gameCanvas
     }
 
     draw(ctx) {
@@ -88,32 +134,56 @@ class Board {
         })
     }
 
-    setDicePosition(dice) {
-        this.fields.forEach((f, i) => {
-            if (f.diceFace)
-                f.dice = undefined
-            
-            if (i === dice.position)
-                f.dice = dice.face
-        })
+    set dicePosition(dice) {
+        this.fields[this.dice.position].dice = null
+        this.fields[dice.position].dice = dice.face
+
+        this.dice = dice
+    }
+
+    set selectedField(selectedField) {
+        if (typeof this.selectedFieldAcc === 'number' && this.selectedFieldAcc >= 0 && this.selectedFieldAcc < 30) {
+            this.fields[this.selectedFieldAcc].isSelected = false
+        }
+        if (typeof selectedField === 'number' && selectedField >= 0 && selectedField < 30) {
+            this.fields[selectedField].isSelected = true
+        }
+        
+        this.selectedFieldAcc = selectedField
+    }
+
+    get selectedField() {
+        return this.selectedFieldAcc
+    }
+
+    setDiceFaceForSelected(diceFace) {
+        if (diceFace >= 1)
+            this.dicePosition = { position: this.selectedField, face: diceFace }
+        
+        this.selectedField = null
     }
 
     onClick(x, y) {
         let ret = false
 
-        if (x >= 600 - 500 / 2 && x <= 600 + 500 / 2 && y >= 300 - 300 / 2 && y <= 300 + 300 / 2) {
-            for (let f of this.fields) {
-                if (f.onClick(x, y))
+        if (this.chooseBubble.onClick(x, y)) {
+            ret = true
+        } else if (x >= 600 - 500 / 2 && x <= 600 + 500 / 2 && y >= 300 - 300 / 2 && y <= 300 + 300 / 2) {
+            this.fields.forEach((f, i) => {
+                if (f.onClick(x, y)) {
+                    this.selectedField = i
                     ret = true
+                }
+            })
+
+            if (ret) {
+                this.chooseBubble.setForTarget(x, y)
+                this.chooseBubble.allowOnlyStarOption = this.fields[this.selectedField].isStar
+                this.chooseBubble.isVisible = true
             }
         }
-
-        if (ret) {
-            this.chooseBubble.setForTarget(x, y)
-            this.chooseBubble.isVisible = true
-        }
-
-        return ret
+        
+        return true
     }
 }
 
@@ -131,7 +201,7 @@ class Field {
         this.isStar = isStar
         this.isMovable = false
         this.dicesImage = dicesImage
-        this.dice = undefined
+        this.dice = null
         this.isSelected = false
     }
 
@@ -322,7 +392,7 @@ class GameCanvas {
     constructor(canvas, dicesImage, bubbleImage, players) {
         this.canvas = canvas
         this.ctx = canvas.getContext('2d')
-        this.board = new Board(dicesImage, bubbleImage, this.ctx)
+        this.board = new Board(dicesImage, bubbleImage, this, this.ctx)
 
         this.canvas.addEventListener('click', this.onClick.bind(this))
 
@@ -438,7 +508,7 @@ function game() {
                 this.dice = data
                 this.targetDice = data
 
-                this.gameCanvas.board.setDicePosition(data)
+                this.gameCanvas.board.dicePosition = data
                 if (this.players[0].atTurn)
                     this.gameCanvas.board.setMovableFrom(data.position)
                 this.gameCanvas.draw()
