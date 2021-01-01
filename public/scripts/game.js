@@ -108,7 +108,6 @@ class Board {
 
         this.chooseBubble = new ChooseBubble(dicesImage, bubbleImage, this)
         this.selectedField = -1
-        this.dice = { position: 0, diceFace: 0 }
         this.gameCanvas = gameCanvas
     }
 
@@ -125,7 +124,7 @@ class Board {
         this.chooseBubble.draw(ctx)
     }
 
-    setMovableFrom(targetIndex) {
+    set movableFrom(targetIndex) {
         this.fields.forEach((f, index) => {
             if (index < targetIndex)
                 f.isMovable = false
@@ -134,13 +133,17 @@ class Board {
         })
     }
 
-    set dicePosition(dice) {
-        this.fields[this.dice.position].dice = null
+    set dice(dice) {
+        if (typeof this.diceAcc === 'object') {
+            this.fields[this.diceAcc.position].dice = null
+        }
+        
         this.fields[dice.position].dice = dice.face
+        this.diceAcc = dice
+    }
 
-        this.setMovableFrom(dice.position)
-
-        this.dice = dice
+    get dice() {
+        return this.diceAcc
     }
 
     set selectedField(selectedField) {
@@ -159,8 +162,10 @@ class Board {
     }
 
     setDiceFaceForSelected(diceFace) {
-        if (diceFace >= 1)
-            this.dicePosition = { position: this.selectedField, face: diceFace }
+        if (diceFace >= 1) {
+            let dice = { position: this.selectedField, face: diceFace }
+            this.gameCanvas.sendMove(dice)
+        }
         
         this.selectedField = null
     }
@@ -181,14 +186,16 @@ class Board {
             if (ret) {
                 this.chooseBubble.setForTarget(x, y)
                 this.chooseBubble.allowOnlyStarOption = this.fields[this.selectedField].isStar
-                if (this.selectedField == 0 || !this.fields[this.selectedField - 1].isMovable) {
+                if (this.selectedField == this.dice.position) {
                     this.chooseBubble.allowFrom = this.dice.face + 1
+                } else {
+                    this.chooseBubble.allowFrom = 1
                 }
                 this.chooseBubble.isVisible = true
             }
         }
         
-        return true
+        return ret
     }
 }
 
@@ -394,34 +401,77 @@ class Player {
 }
 
 class GameCanvas {
-    constructor(canvas, dicesImage, bubbleImage, players) {
+    constructor(canvas, dicesImage, bubbleImage, socket, players) {
         this.canvas = canvas
         this.ctx = canvas.getContext('2d')
         this.board = new Board(dicesImage, bubbleImage, this, this.ctx)
+        this.dicesImage = dicesImage
+        this.bubbleImage = bubbleImage
+        this.socket = socket
 
         this.canvas.addEventListener('click', this.onClick.bind(this))
 
-        this.players = []
-        
-        this.players.push(new Player(players[0], 600, 300 + 220, dicesImage, this.ctx))
+        this.players = players
+        this.dice = { position: 0, face: 0 }
+    }
+
+    get players() {
+        return this.playersAcc
+    }
+
+    set players(players) {
+        this.playersAcc = []
+
+        this.players.push(new Player(players[0], 600, 300 + 220, this.dicesImage, this.ctx))
 
         switch(players.length) {
             case 2:
-                this.create2Players(players, dicesImage, ctx)
+                this.create2Players(players)
                 break
             case 3:
-                this.create3Players(players, dicesImage, ctx)
+                this.create3Players(players)
                 break
             case 4:
-                this.create4Players(players, dicesImage, ctx)
+                this.create4Players(players)
                 break
             case 5:
-                this.create5Players(players, dicesImage, ctx)
+                this.create5Players(players)
                 break
             case 6:
-                this.create6Players(players, dicesImage, ctx)
+                this.create6Players(players)
                 break
         }
+
+        players.forEach((p, i) => {
+            if (p.atTurn) this.currentTurnIndex = i
+        })
+    }
+
+    set dice(dice) {
+        this.board.dice = dice
+    }
+
+    get dice() {
+        return this.board.dice
+    }
+
+    set currentTurnIndex(currentTurnIndex) {
+        if (typeof this.currentTurnIndex === 'number')
+            this.players[this.currentTurnIndex].playerData.atTurn = false
+
+        this.currentTurnIndexAcc = currentTurnIndex
+        this.players[this.currentTurnIndex].playerData.atTurn = true
+    }
+
+    get currentTurnIndex() {
+        return this.currentTurnIndexAcc
+    }
+
+    updateMoveOptions() {
+        if (this.players[0].playerData.atTurn)
+            this.board.movableFrom = this.dice.position + (this.dice.face > 4 ? 1 : 0)
+        else
+            this.board.movableFrom = 30
     }
 
     draw() {
@@ -431,34 +481,34 @@ class GameCanvas {
         this.board.draw(this.ctx)
     }
 
-    create2Players(players, dicesImage, ctx) {
-        this.players.push(new Player(players[1], 600, 300 - 200, dicesImage, ctx))
+    create2Players(players) {
+        this.players.push(new Player(players[1], 600, 300 - 200, this.dicesImage, this.ctx))
     }
 
-    create3Players(players, dicesImage, ctx) {
-        this.players.push(new Player(players[1], 600 - 400, 300, dicesImage, ctx))
-        this.players.push(new Player(players[2], 600 + 400, 300, dicesImage, ctx))
+    create3Players(players) {
+        this.players.push(new Player(players[1], 600 - 400, 300, this.dicesImage, this.ctx))
+        this.players.push(new Player(players[2], 600 + 400, 300, this.dicesImage, this.ctx))
     }
 
-    create4Players(players, dicesImage, ctx) {
-        this.players.push(new Player(players[1], 600 - 400, 300, dicesImage, ctx))
-        this.players.push(new Player(players[2], 600, 300 - 200, dicesImage, ctx))
-        this.players.push(new Player(players[3], 600 + 400, 300, dicesImage, ctx))
+    create4Players(players) {
+        this.players.push(new Player(players[1], 600 - 400, 300, this.dicesImage, this.ctx))
+        this.players.push(new Player(players[2], 600, 300 - 200, this.dicesImage, this.ctx))
+        this.players.push(new Player(players[3], 600 + 400, 300, this.dicesImage, this.ctx))
     }
 
-    create5Players(players, dicesImage, ctx) {
-        this.players.push(new Player(players[1], 600 - 400, 300 + 75, dicesImage, ctx))
-        this.players.push(new Player(players[2], 600 - 400, 300 - 75, dicesImage, ctx))
-        this.players.push(new Player(players[3], 600 + 400, 300 - 75, dicesImage, ctx))
-        this.players.push(new Player(players[4], 600 + 400, 300 + 75, dicesImage, ctx))
+    create5Players(players) {
+        this.players.push(new Player(players[1], 600 - 400, 300 + 75, this.dicesImage, this.ctx))
+        this.players.push(new Player(players[2], 600 - 400, 300 - 75, this.dicesImage, this.ctx))
+        this.players.push(new Player(players[3], 600 + 400, 300 - 75, this.dicesImage, this.ctx))
+        this.players.push(new Player(players[4], 600 + 400, 300 + 75, this.dicesImage, this.ctx))
     }
 
-    create6Players(players, dicesImage, ctx) {
-        this.players.push(new Player(players[1], 600 - 400, 300 + 75, dicesImage, ctx))
-        this.players.push(new Player(players[2], 600 - 400, 300 - 75, dicesImage, ctx))
-        this.players.push(new Player(players[3], 600, 300 - 200, dicesImage, ctx))
-        this.players.push(new Player(players[4], 600 + 400, 300 - 75, dicesImage, ctx))
-        this.players.push(new Player(players[5], 600 + 400, 300 + 75, dicesImage, ctx))
+    create6Players(players) {
+        this.players.push(new Player(players[1], 600 - 400, 300 + 75, this.dicesImage, this.ctx))
+        this.players.push(new Player(players[2], 600 - 400, 300 - 75, this.dicesImage, this.ctx))
+        this.players.push(new Player(players[3], 600, 300 - 200, this.dicesImage, this.ctx))
+        this.players.push(new Player(players[4], 600 + 400, 300 - 75, this.dicesImage, this.ctx))
+        this.players.push(new Player(players[5], 600 + 400, 300 + 75, this.dicesImage, this.ctx))
     }
 
     onClick(event) {
@@ -466,26 +516,23 @@ class GameCanvas {
         let x = event.clientX - rect.left
         let y = event.clientY - rect.top
 
-        if (this.board.onClick(x, y)) {
-            this.draw()
-        }
+        this.board.onClick(x, y)
+        this.draw()
+    }
+
+    sendMove(dice) {
+        this.socket.emit('move', dice)
     }
 }
 
 function game() {
     return {
         gameState: '',
-        board: false,
-        players: [],
         game: {},
-        player: {
-            dices: []
-        },
+        player: {},
         authenticated: false,
         rejoin: false,
-        dice: {},
-        targetDice: this.dice,
-        showMoveOptions: true,
+        players: [],
         connectSocketIO() {
             this.socket = io()
 
@@ -499,23 +546,27 @@ function game() {
             })
             this.socket.on('playerlist', data => {
                 console.log(`game.playerlist`)
+
                 this.players = data
 
-                this.gameCanvas = new GameCanvas(this.$refs.gameCanvas, this.$refs.dicesImage, this.$refs.bubbleImage, data)
+                if (!this.gameCanvas) {
+                    this.gameCanvas = new GameCanvas(this.$refs.gameCanvas, this.$refs.dicesImage, this.$refs.bubbleImage, this.socket, data)
+                } else {
+                    this.gameCanvas.players = data
+                }
+                
                 this.gameCanvas.draw()
             })
             this.socket.on('playerinfo', data => {
                 console.log(`game.playerinfo`)
                 this.player = data
             })
-            this.socket.on('diceposition', data => {
-                console.log(`game.diceposition`)
-                this.dice = data
-                this.targetDice = data
+            this.socket.on('gamestate', data => {
+                console.log(`game.gamestate`)
 
-                this.gameCanvas.board.dicePosition = data
-                if (this.players[0].atTurn)
-                    this.gameCanvas.board.setMovableFrom(data.position)
+                this.gameCanvas.dice = data.dice
+                this.gameCanvas.currentTurnIndex = data.currentTurnIndex
+                this.gameCanvas.updateMoveOptions()
                 this.gameCanvas.draw()
             })
 

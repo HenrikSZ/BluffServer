@@ -54,8 +54,7 @@ class Game {
         while (this.players[i] != player) {
             target.push({
                 username: this.players[i].username,
-                dices: this.state === 'ingame' ? [0, 0, 0, 0, 0] : [],
-                atTurn: i == this.currentTurnIndex
+                dices: this.state === 'ingame' ? [0, 0, 0, 0, 0] : []
             })
 
             i++
@@ -65,6 +64,18 @@ class Game {
         }
 
         return target
+    }
+
+    getCustomGameStateFor(player) {
+        let i = this.players.indexOf(player)
+
+        let delta = this.currentTurnIndex - i
+        if (delta < 0) delta += this.players.length
+
+        return {
+            dice: this.dicePosition,
+            currentTurnIndex: delta
+        }
     }
 
     getPublicGameInfo() {
@@ -87,7 +98,7 @@ class Game {
         }
     }
 
-    nextPlayerTurn() {
+    nextTurn() {
         this.currentTurnIndex++
 
         if (this.currentTurnIndex == this.players.length || this.players[this.currentTurnIndex].diceCount <= 0) {

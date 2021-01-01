@@ -51,9 +51,5 @@ html
                     button(class="btn btn-success m-2" x-show="player.isAdmin" @click="startGame()") Start
                 div(x-show="isIngame()")
                     div(class="m-4")
-                        div(x-show="players[0] && players[0].atTurn")
-                            div(x-ref="ownTurnOptionsCanvasParent")
                     div(class="text-center")
                         canvas(class="border border-primary" x-ref="gameCanvas" width="1200px" height="600px")
-
-                    button(x-show="showMoveOptions" @click="console.log('Player assumes lying')" class="btn btn-primary") It's a lie

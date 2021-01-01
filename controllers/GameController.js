@@ -39,7 +39,7 @@ class GameController {
 
         socket.emit('gameinfo', socket.player.game.getPublicGameInfo())
         socket.emit('playerlist', socket.player.game.getCustomPlayerList(socket.player))
-        socket.emit('diceposition', socket.player.game.dicePosition)
+        socket.emit('gamestate', socket.player.game.getCustomGameStateFor(socket.player))
         socket.emit('statechange', socket.player.game.state)
     }
 
@@ -121,23 +121,28 @@ class GameController {
         socket.player.game.prepare()
         socket.player.game.players.forEach(p => {
             p.socket.emit('playerlist', socket.player.game.getCustomPlayerList(p))
+            p.socket.emit('gamestate', socket.player.game.getCustomGameStateFor(p))
         })
         
         //let playerAtTurnSocket = socket.player.game.players[socket.player.game.currentTurnIndex].socket
 
         this.io.to(socket.player.game.inviteCode).emit('statechange', 'ingame')
-        this.io.to(socket.player.game.inviteCode).emit('diceposition', socket.player.game.dicePosition)
+        //this.io.to(socket.player.game.inviteCode).emit('diceposition', socket.player.game.dicePosition)
     }
 
     handleMove(socket, data) {
         if (!socket.player) {
             // Handle not authenticated error
         }
-        if (socket.player && socket.player.game.activePlayer == socket.player) {
-            
-        } else {
-            // Handle ill-formatted error
+        if (socket.player.game.players[socket.player.game.currentTurnIndex] != socket.player) {
+            // Handle wrong player
         }
+
+        socket.player.game.dicePosition = data
+        socket.player.game.nextTurn()
+        socket.player.game.players.forEach((p) => {
+            p.socket.emit('gamestate', socket.player.game.getCustomGameStateFor(p))
+        })
     }
 }
 
