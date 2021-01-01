@@ -8,6 +8,48 @@ function setCookieValue(key, value, maxAge) {
     document.cookie = `${key}=${value}; max-age=${maxAge}`
 }
 
+class LieButton {
+    constructor(x, y, board, ctx) {
+        this.isVisible = false
+        
+        const textWidth = ctx.measureText('Aufdecken').width
+
+        this.x = x
+        this.y = y
+        this.textX = x + (200 - textWidth) / 2
+
+        this.board = board
+    }
+
+    draw(ctx) {
+        if (this.isVisible) {
+            ctx.beginPath()
+            ctx.rect(this.x, this.y, 200, 30)
+            
+            ctx.fillStyle = 'red'
+            ctx.strokeStyle = 'white'
+
+            ctx.fill()
+            ctx.stroke()
+
+            ctx.font = '20px Arial'
+
+            ctx.fillStyle ="white"
+            ctx.fillText('Aufdecken', this.textX, this.y + 20 + 2)
+        }
+    }
+
+    onClick(x, y) {
+        if (this.isVisible && x >= this.x && x < this.x + 200 && y >= this.y && y < this.y + 30) {
+            //this.board.gameCanvas.endRound()
+            console.log('Aufdecken')
+            return true
+        }
+
+        return false
+    }
+}
+
 class ChooseBubble {
     constructor(dicesImage, bubbleImage, board) {
         this.bubbleImage = bubbleImage
@@ -107,6 +149,7 @@ class Board {
         }
 
         this.chooseBubble = new ChooseBubble(dicesImage, bubbleImage, this)
+        this.lieButton = new LieButton(600 - 200 / 2, 300 - 30 / 2, ctx)
         this.selectedField = -1
         this.gameCanvas = gameCanvas
     }
@@ -122,6 +165,7 @@ class Board {
 
         this.fields.forEach(f => f.draw(ctx))
         this.chooseBubble.draw(ctx)
+        this.lieButton.draw(ctx)
     }
 
     set movableFrom(targetIndex) {
@@ -176,22 +220,26 @@ class Board {
         if (this.chooseBubble.onClick(x, y)) {
             ret = true
         } else if (x >= 600 - 500 / 2 && x <= 600 + 500 / 2 && y >= 300 - 300 / 2 && y <= 300 + 300 / 2) {
-            this.fields.forEach((f, i) => {
-                if (f.onClick(x, y)) {
-                    this.selectedField = i
-                    ret = true
+            if (this.lieButton.onClick(x, y)) {
+                ret = true
+            } else {
+                this.fields.forEach((f, i) => {
+                    if (f.onClick(x, y)) {
+                        this.selectedField = i
+                        ret = true
+                    }
+                })
+    
+                if (ret) {
+                    this.chooseBubble.setForTarget(x, y)
+                    this.chooseBubble.allowOnlyStarOption = this.fields[this.selectedField].isStar
+                    if (this.selectedField == this.dice.position) {
+                        this.chooseBubble.allowFrom = this.dice.face + 1
+                    } else {
+                        this.chooseBubble.allowFrom = 1
+                    }
+                    this.chooseBubble.isVisible = true
                 }
-            })
-
-            if (ret) {
-                this.chooseBubble.setForTarget(x, y)
-                this.chooseBubble.allowOnlyStarOption = this.fields[this.selectedField].isStar
-                if (this.selectedField == this.dice.position) {
-                    this.chooseBubble.allowFrom = this.dice.face + 1
-                } else {
-                    this.chooseBubble.allowFrom = 1
-                }
-                this.chooseBubble.isVisible = true
             }
         }
         
@@ -468,10 +516,14 @@ class GameCanvas {
     }
 
     updateMoveOptions() {
-        if (this.players[0].playerData.atTurn)
+        if (this.players[0].playerData.atTurn) {
             this.board.movableFrom = this.dice.position + (this.dice.face > 4 ? 1 : 0)
-        else
+            this.board.lieButton.isVisible = true
+        }
+        else {
             this.board.movableFrom = 30
+            this.board.lieButton.isVisible = false
+        }
     }
 
     draw() {
