@@ -120,14 +120,14 @@ class GameController {
         // TODO
         socket.player.game.prepare()
         socket.player.game.players.forEach(p => {
-            p.socket.emit('playerlist', socket.player.game.getCustomPlayerList(p))
+            p.socket.emit('playerlist', socket.player.game.getCustomPlayerList(p, false))
             p.socket.emit('gamestate', socket.player.game.getCustomGameStateFor(p))
         })
         
         //let playerAtTurnSocket = socket.player.game.players[socket.player.game.currentTurnIndex].socket
 
         this.io.to(socket.player.game.inviteCode).emit('statechange', 'ingame')
-        //this.io.to(socket.player.game.inviteCode).emit('diceposition', socket.player.game.dicePosition)
+        //this.io.to(socket.player.game.inviteCode).emit('dice', socket.player.game.dice)
     }
 
     handleMove(socket, data) {
@@ -138,10 +138,62 @@ class GameController {
             // Handle wrong player
         }
 
-        socket.player.game.dicePosition = data
+        // TODO check client data
+        socket.player.game.dice = data
         socket.player.game.nextTurn()
         socket.player.game.players.forEach((p) => {
             p.socket.emit('gamestate', socket.player.game.getCustomGameStateFor(p))
+        })
+    }
+
+    countRelevantDices(diceList, dice) {
+        let count = 0
+
+        diceList.forEach(d => {
+            d.forEach(d => {
+                if (d == dice.face) count++
+            })
+        })
+
+        return count
+    }
+
+    getTargetCount(position) {
+        position += 1
+
+        let modulo = position % 3
+        
+        if (modulo == 2) {
+            return (position - modulo) / 3 + 1
+        } else {
+            return position - (position - modulo) / 3
+        }
+    }
+
+    handleRefute(socket, data) {
+        if (!socket.player) {
+            // Handle not authenticated error
+        }
+
+        if (socket.player.game.players[socket.player.game.currentTurnIndex] != socket.player) {
+            // Handle wrong player
+        }
+
+        socket.player.game.players.forEach(p => {
+            const diceList = socket.player.game.getCustomDicesList(p)
+            const count = this.countRelevantDices(diceList, socket.player.game.dice)
+            const target = this.getTargetCount(socket.player.game.dice.position)
+
+            let comparisonData = {
+                actual: count,
+                target: target,
+                dice: socket.player.game.dice
+            }
+
+            p.socket.emit('refute', {
+                dices: diceList,
+                comparisonData: comparisonData
+            })
         })
     }
 }

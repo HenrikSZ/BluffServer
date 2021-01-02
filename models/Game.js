@@ -12,7 +12,7 @@ class Game {
         this.inviteCode = crypto.randomBytes(4).toString('hex')
         this.state = 'lobby'
         this.currentTurnIndex = 0
-        this.dicePosition = {
+        this.dice = {
             face: 0,
             position: 0
         }
@@ -54,8 +54,32 @@ class Game {
         while (this.players[i] != player) {
             target.push({
                 username: this.players[i].username,
-                dices: this.state === 'ingame' ? [0, 0, 0, 0, 0] : []
+                dices: [0, 0, 0, 0, 0]
             })
+
+            i++
+
+            if (i == this.players.length)
+                i = 0
+        }
+
+        return target
+    }
+
+    getCustomDicesList(player) {
+        const target = []
+
+        let i = this.players.indexOf(player)
+
+        target.push(player.dices)
+
+        i++
+
+        if (i == this.players.length)
+            i = 0
+
+        while (this.players[i] != player) {
+            target.push(this.players[i].dices)
 
             i++
 
@@ -73,7 +97,7 @@ class Game {
         if (delta < 0) delta += this.players.length
 
         return {
-            dice: this.dicePosition,
+            dice: this.dice,
             currentTurnIndex: delta
         }
     }
