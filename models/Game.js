@@ -42,7 +42,7 @@ class Game {
 
         target.push({
             username: player.username,
-            dices: this.state === 'ingame' ? player.dices : [],
+            dices: this.state === 'ingame' || this.state === 'refute' ? player.dices : [],
             atTurn: i == this.currentTurnIndex
         })        
 
@@ -54,7 +54,7 @@ class Game {
         while (this.players[i] != player) {
             target.push({
                 username: this.players[i].username,
-                dices: [0, 0, 0, 0, 0]
+                dices: Array(this.players[i].dices.length).fill(0, 0, this.players[i].dices.length)
             })
 
             i++
@@ -122,6 +122,23 @@ class Game {
         }
     }
 
+    getPreviousActivePlayerIndex() {
+        let i = this.currentTurnIndex
+
+        while (true) {
+            i--
+            if (i < 0) {
+                i = this.players.length - 1
+            }
+
+            if (i == this.currentTurnIndex)
+                return -1
+
+            if (this.players[i].inPlay())
+                return i
+        }
+    }
+
     nextTurn() {
         this.currentTurnIndex++
 
@@ -130,12 +147,35 @@ class Game {
         }
     }
 
-    prepare() {
+    prepare(newGame) {
+        if (!newGame) {
+            const diff = this.comparisonData.target - this.comparisonData.actual
+            const previousPlayerIndex = this.getPreviousActivePlayerIndex()
+
+            if (diff < 0) {
+                this.players[this.currentTurnIndex].dicesTaken = -diff
+                this.currentTurnIndex = previousPlayerIndex
+            } else if (diff > 0) {
+                this.players[previousPlayerIndex].dicesTaken = diff
+            } else {
+                this.players.forEach((p, i) => {
+                    if (i != previousPlayerIndex) {
+                        p.dicesTaken = 1
+                    }
+                })
+            }
+            this.comparisonData = null
+        }
+
         this.players.forEach(p => {
-            p.rollTheDices(true)
+            p.rollTheDices(newGame)
         })
 
         this.state = 'ingame'
+        this.dice = {
+            face: 0,
+            position: 0
+        }
     }
 }
 

@@ -8,17 +8,16 @@ function setCookieValue(key, value, maxAge) {
     document.cookie = `${key}=${value}; max-age=${maxAge}`
 }
 
-class LieButton {
-    constructor(x, y, board, ctx) {
+class Button {
+    constructor(x, y, text, ctx) {
         this.isVisible = false
         
-        const textWidth = ctx.measureText('Aufdecken').width
+        const textWidth = ctx.measureText(text).width
 
         this.x = x
         this.y = y
         this.textX = x + (200 - textWidth) / 2
-
-        this.board = board
+        this.text = text
     }
 
     draw(ctx) {
@@ -35,12 +34,46 @@ class LieButton {
             ctx.font = '20px Arial'
 
             ctx.fillStyle = 'white'
-            ctx.fillText('Aufdecken', this.textX, this.y + 20 + 2)
+            ctx.fillText(this.text, this.textX, this.y + 20 + 2)
         }
     }
 
     onClick(x, y) {
         if (this.isVisible && x >= this.x && x < this.x + 200 && y >= this.y && y < this.y + 30) {
+            return true
+        }
+
+        return false
+    }
+}
+
+class NextRoundButton extends Button {
+    constructor(x, y, board, ctx) {
+        super(x, y, 'Nächste Runde', ctx)
+
+        this.board = board
+    }
+
+    onClick(x, y) {
+        if (super.onClick(x, y)) {
+            console.log('next round')
+            this.board.gameCanvas.nextRound()
+            return true
+        }
+
+        return false
+    }
+}
+
+class LieButton extends Button {
+    constructor(x, y, board, ctx) {
+        super(x, y, 'Aufdecken', ctx)
+
+        this.board = board
+    }
+
+    onClick(x, y) {
+        if (super.onClick(x, y)) {
             this.board.gameCanvas.refute()
             return true
         }
@@ -50,10 +83,8 @@ class LieButton {
 }
 
 class ComparisonGraphic {
-    constructor(x, y, dicesImage, board, ctx) {
-        this.isVisible = false
-        
-        const textWidth = ctx.measureText('Aufdecken').width
+    constructor(x, y, dicesImage, board, ctx) {        
+        //const textWidth = ctx.measureText('Aufdecken').width
 
         this.x = x
         this.y = y
@@ -61,6 +92,18 @@ class ComparisonGraphic {
         this.dicesImage = dicesImage
 
         this.board = board
+        this.nextRoundButton = new NextRoundButton(x, y + 60, board, ctx)
+        this.isVisible = false
+    }
+
+    set isVisible(isVisible) {
+        this.isVisibleAcc = isVisible
+        if (!isVisible || this.board.gameCanvas.thisPlayer.playerData.atTurn)
+            this.nextRoundButton.isVisible = isVisible
+    }
+
+    get isVisible() {
+        return this.isVisibleAcc
     }
 
     draw(ctx) {
@@ -85,18 +128,18 @@ class ComparisonGraphic {
 
             ctx.fillText(this.comparisonData.target + 'x', this.x + 20 + 20 - ctx.measureText(this.comparisonData.target + 'x').width, this.y + 20 / 2)
             ctx.drawImage(this.dicesImage, 200 * this.comparisonData.dice.face, 400, 200, 200, this.x + 20 + 10 + 20, this.y - 50 / 2, 50, 50)
+
+            this.nextRoundButton.draw(ctx)
         }
     }
 
-    /*onClick(x, y) {
-        if (this.isVisible && x >= this.x && x < this.x + 200 && y >= this.y && y < this.y + 30) {
-            //this.board.gameCanvas.endRound()
-            console.log('Aufdecken')
+    onClick(x, y) {
+        if (this.nextRoundButton.onClick(x, y)) {
             return true
         }
 
         return false
-    }*/
+    }
 }
 
 class ChooseBubble {
@@ -268,7 +311,9 @@ class Board {
     onClick(x, y) {
         let ret = false
 
-        if (this.chooseBubble.onClick(x, y)) {
+        if (this.comparisonGraphic.onClick(x, y)) {
+            ret = true
+        } else if (this.chooseBubble.onClick(x, y)) {
             ret = true
         } else if (x >= 600 - 500 / 2 && x <= 600 + 500 / 2 && y >= 300 - 300 / 2 && y <= 300 + 300 / 2) {
             if (this.lieButton.onClick(x, y)) {
@@ -448,12 +493,13 @@ class SimpleField extends Field {
 }
 
 class Player {
-    constructor(playerData, x, y, dicesImage, ctx) {
+    constructor(playerData, x, y, dicesImage, gameCanvas, ctx) {
         this.playerData = playerData
         this.x = x
         this.y = y
 
         this.dicesImage = dicesImage
+        this.gameCanvas = gameCanvas
 
         this.currentTurnTextX = x - ctx.measureText('current turn').width / 2
         this.nameX = x - ctx.measureText(playerData.username).width / 2
@@ -472,7 +518,8 @@ class Player {
         const totalWidth = this.playerData.dices.length * 50 + (this.playerData.dices.length - 1) * spacing
 
         this.playerData.dices.forEach((d, index) => {
-            ctx.drawImage(this.dicesImage, d * 200, d.isHighlighted ? 200 : 0, 200, 200, this.x - totalWidth / 2 + (50 + spacing) * index, this.y - 30, 50, 50)
+            const highlighted = typeof this.gameCanvas.comparisonData === 'object' && this.gameCanvas.comparisonData.dice.face == d
+            ctx.drawImage(this.dicesImage, d * 200, highlighted ? 200 : 0, 200, 200, this.x - totalWidth / 2 + (50 + spacing) * index, this.y - 30, 50, 50)
         })
     }
 
@@ -514,6 +561,10 @@ class GameCanvas {
         this.dice = { position: 0, face: 0 }
     }
 
+    get thisPlayer() {
+        return this.players[0]
+    }
+
     get players() {
         return this.playersAcc
     }
@@ -521,7 +572,7 @@ class GameCanvas {
     set players(players) {
         this.playersAcc = []
 
-        this.players.push(new Player(players[0], 600, 300 + 220, this.dicesImage, this.ctx))
+        this.players.push(new Player(players[0], 600, 300 + 220, this.dicesImage, this, this.ctx))
 
         switch(players.length) {
             case 2:
@@ -559,11 +610,21 @@ class GameCanvas {
             this.players[this.currentTurnIndex].playerData.atTurn = false
 
         this.currentTurnIndexAcc = currentTurnIndex
-        this.players[this.currentTurnIndex].playerData.atTurn = true
+
+        if (typeof this.currentTurnIndex === 'number')
+            this.players[this.currentTurnIndex].playerData.atTurn = true
     }
 
     get currentTurnIndex() {
         return this.currentTurnIndexAcc
+    }
+
+    set comparisonData(comparisonData) {
+        this.board.comparisonGraphic.comparisonData = comparisonData
+    }
+
+    get comparisonData() {
+        return this.board.comparisonGraphic.comparisonData
     }
 
     updateDices(dices) {
@@ -573,7 +634,7 @@ class GameCanvas {
     }
 
     updateMoveOptions() {
-        if (this.players[0].playerData.atTurn) {
+        if (this.thisPlayer.playerData.atTurn) {
             this.board.movableFrom = this.dice.position + (this.dice.face > 4 ? 1 : 0)
             this.board.lieButton.isVisible = true
         }
@@ -587,6 +648,10 @@ class GameCanvas {
         this.socket.emit('refute')
     }
 
+    nextRound() {
+        this.socket.emit('nextround')
+    }
+
     draw() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
 
@@ -595,33 +660,33 @@ class GameCanvas {
     }
 
     create2Players(players) {
-        this.players.push(new Player(players[1], 600, 300 - 200, this.dicesImage, this.ctx))
+        this.players.push(new Player(players[1], 600, 300 - 200, this.dicesImage, this, this.ctx))
     }
 
     create3Players(players) {
-        this.players.push(new Player(players[1], 600 - 400, 300, this.dicesImage, this.ctx))
+        this.players.push(new Player(players[1], 600 - 400, 300, this.dicesImage, this, this.ctx))
         this.players.push(new Player(players[2], 600 + 400, 300, this.dicesImage, this.ctx))
     }
 
     create4Players(players) {
-        this.players.push(new Player(players[1], 600 - 400, 300, this.dicesImage, this.ctx))
-        this.players.push(new Player(players[2], 600, 300 - 200, this.dicesImage, this.ctx))
-        this.players.push(new Player(players[3], 600 + 400, 300, this.dicesImage, this.ctx))
+        this.players.push(new Player(players[1], 600 - 400, 300, this.dicesImage, this, this.ctx))
+        this.players.push(new Player(players[2], 600, 300 - 200, this.dicesImage, this, this.ctx))
+        this.players.push(new Player(players[3], 600 + 400, 300, this.dicesImage, this, this.ctx))
     }
 
     create5Players(players) {
-        this.players.push(new Player(players[1], 600 - 400, 300 + 75, this.dicesImage, this.ctx))
-        this.players.push(new Player(players[2], 600 - 400, 300 - 75, this.dicesImage, this.ctx))
-        this.players.push(new Player(players[3], 600 + 400, 300 - 75, this.dicesImage, this.ctx))
-        this.players.push(new Player(players[4], 600 + 400, 300 + 75, this.dicesImage, this.ctx))
+        this.players.push(new Player(players[1], 600 - 400, 300 + 75, this.dicesImage, this, this.ctx))
+        this.players.push(new Player(players[2], 600 - 400, 300 - 75, this.dicesImage, this, this.ctx))
+        this.players.push(new Player(players[3], 600 + 400, 300 - 75, this.dicesImage, this, this.ctx))
+        this.players.push(new Player(players[4], 600 + 400, 300 + 75, this.dicesImage, this, this.ctx))
     }
 
     create6Players(players) {
-        this.players.push(new Player(players[1], 600 - 400, 300 + 75, this.dicesImage, this.ctx))
-        this.players.push(new Player(players[2], 600 - 400, 300 - 75, this.dicesImage, this.ctx))
-        this.players.push(new Player(players[3], 600, 300 - 200, this.dicesImage, this.ctx))
-        this.players.push(new Player(players[4], 600 + 400, 300 - 75, this.dicesImage, this.ctx))
-        this.players.push(new Player(players[5], 600 + 400, 300 + 75, this.dicesImage, this.ctx))
+        this.players.push(new Player(players[1], 600 - 400, 300 + 75, this.dicesImage, this, this.ctx))
+        this.players.push(new Player(players[2], 600 - 400, 300 - 75, this.dicesImage, this, this.ctx))
+        this.players.push(new Player(players[3], 600, 300 - 200, this.dicesImage, this, this.ctx))
+        this.players.push(new Player(players[4], 600 + 400, 300 - 75, this.dicesImage, this, this.ctx))
+        this.players.push(new Player(players[5], 600 + 400, 300 + 75, this.dicesImage, this, this.ctx))
     }
 
     onClick(event) {
@@ -687,10 +752,18 @@ function game() {
 
                 console.log(data)
 
-                this.gameCanvas.board.comparisonGraphic.comparisonData = data.comparisonData
+                this.gameCanvas.comparisonData = data.comparisonData
                 this.gameCanvas.board.lieButton.isVisible = false
                 this.gameCanvas.board.comparisonGraphic.isVisible = true
+                this.gameCanvas.currentTurnIndex = null
+                this.gameCanvas.board.movableFrom = 30
                 this.gameCanvas.updateDices(data.dices)
+                this.gameCanvas.draw()
+            })
+            this.socket.on('nextround', data => {
+                console.log('game.nextround')
+
+                this.gameCanvas.board.comparisonGraphic.isVisible = false
                 this.gameCanvas.draw()
             })
 

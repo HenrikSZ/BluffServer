@@ -72,6 +72,9 @@ server.listen(port, async () => {
         socket.on('refute', data => {
             gameController.handleRefute(socket, data)
         })
+        socket.on('nextround', data => {
+            gameController.handleNextRound(socket, data)
+        })
     })
     console.log(`sys.list.port[${port}]`)
 })

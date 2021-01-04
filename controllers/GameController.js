@@ -1,3 +1,4 @@
+const { isObject } = require('util')
 const Game = require('../models/Game.js')
 const Player = require('../models/Player.js')
 
@@ -52,6 +53,9 @@ class GameController {
         }
         
         let game = this.gameManager.getFromInviteCode(data.inviteCode)
+        if (!game) {
+            throw new Error('Game not found')
+        }
         if (game.state == 'running') {
             // Handle game already running
         }
@@ -118,7 +122,7 @@ class GameController {
         }
 
         // TODO
-        socket.player.game.prepare()
+        socket.player.game.prepare(true)
         socket.player.game.players.forEach(p => {
             p.socket.emit('playerlist', socket.player.game.getCustomPlayerList(p, false))
             p.socket.emit('gamestate', socket.player.game.getCustomGameStateFor(p))
@@ -172,29 +176,53 @@ class GameController {
 
     handleRefute(socket, data) {
         if (!socket.player) {
-            // Handle not authenticated error
+            throw new Error('Player not authenticated')
         }
 
         if (socket.player.game.players[socket.player.game.currentTurnIndex] != socket.player) {
-            // Handle wrong player
+            throw new Error('Player not at turn')
         }
+
+        socket.player.game.state = 'refute'
 
         socket.player.game.players.forEach(p => {
             const diceList = socket.player.game.getCustomDicesList(p)
             const count = this.countRelevantDices(diceList, socket.player.game.dice)
             const target = this.getTargetCount(socket.player.game.dice.position)
 
-            let comparisonData = {
+            const comparisonData = {
                 actual: count,
                 target: target,
                 dice: socket.player.game.dice
             }
+
+            socket.player.game.comparisonData = comparisonData
 
             p.socket.emit('refute', {
                 dices: diceList,
                 comparisonData: comparisonData
             })
         })
+    }
+
+    handleNextRound(socket, data) {
+        if (!socket.player) {
+            throw new Error('Player not authenticated')
+        }
+        if (socket.player.game.players[socket.player.game.currentTurnIndex] != socket.player) {
+            throw new Error('Player not at turn')
+        }
+        if (socket.player.game.state !== 'refute') {
+            throw new Error('Not at refute state')
+        }
+
+        socket.player.game.prepare(false)
+        socket.player.game.players.forEach(p => {
+            p.socket.emit('playerlist', socket.player.game.getCustomPlayerList(p))
+            p.socket.emit('gamestate', socket.player.game.getCustomGameStateFor(p))
+        })
+
+        this.io.to(socket.player.game.inviteCode).emit('nextround')
     }
 }
 

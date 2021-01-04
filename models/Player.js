@@ -43,6 +43,7 @@ class Player {
         this.id = ''
         this.token = ''
         this.dices = []
+        this.dicesTaken = 0
     }
 
     getPublicPlayerInfo() {
@@ -54,7 +55,12 @@ class Player {
     }
 
     rollTheDices(reset) {
-        const diceCount = reset ? 5 : dices.length
+        let diceCount = reset ? 5 : this.dices.length - this.dicesTaken
+
+        this.dicesTaken = 0
+
+        if (diceCount < 0)
+            diceCount = 0
 
         this.dices = []
         for (let i = 0; i < diceCount; i++) {
@@ -64,8 +70,8 @@ class Player {
         this.dices.sort((a, b) => a - b)
     }
 
-    dicesCount() {
-        return this.dices.length
+    inPlay() {
+        return this.dices.length > 0
     }
 
     joinGame(game) {
@@ -80,12 +86,6 @@ class Player {
 
         this.game.removePlayer(this)
         this.game = null
-    }
-
-    prepare() {
-        this.players.forEach(p => {
-            p.rollTheDices(true)
-        })
     }
 }
 
