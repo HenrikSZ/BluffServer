@@ -40,7 +40,7 @@ class GameController {
 
         socket.emit('gameinfo', socket.player.game.getPublicGameInfo())
         socket.emit('playerlist', socket.player.game.getCustomPlayerList(socket.player))
-        socket.emit('gamestate', socket.player.game.getCustomGameStateFor(socket.player))
+        socket.emit('nextturn', socket.player.game.getCustomGameStateFor(socket.player))
         socket.emit('statechange', socket.player.game.state)
     }
 
@@ -125,7 +125,7 @@ class GameController {
         socket.player.game.prepare(true)
         socket.player.game.players.forEach(p => {
             p.socket.emit('playerlist', socket.player.game.getCustomPlayerList(p, false))
-            p.socket.emit('gamestate', socket.player.game.getCustomGameStateFor(p))
+            p.socket.emit('nextturn', socket.player.game.getCustomGameStateFor(p))
         })
         
         //let playerAtTurnSocket = socket.player.game.players[socket.player.game.currentTurnIndex].socket
@@ -146,7 +146,7 @@ class GameController {
         socket.player.game.dice = data
         socket.player.game.nextTurn()
         socket.player.game.players.forEach((p) => {
-            p.socket.emit('gamestate', socket.player.game.getCustomGameStateFor(p))
+            p.socket.emit('nextturn', socket.player.game.getCustomGameStateFor(p))
         })
     }
 
@@ -219,7 +219,7 @@ class GameController {
         socket.player.game.prepare(false)
         socket.player.game.players.forEach(p => {
             p.socket.emit('playerlist', socket.player.game.getCustomPlayerList(p))
-            p.socket.emit('gamestate', socket.player.game.getCustomGameStateFor(p))
+            p.socket.emit('nextturn', socket.player.game.getCustomGameStateFor(p))
         })
 
         this.io.to(socket.player.game.inviteCode).emit('nextround')

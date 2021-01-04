@@ -163,6 +163,8 @@ class Game {
                         p.dicesTaken = 1
                     }
                 })
+
+                this.currentTurnIndex = previousPlayerIndex
             }
             this.comparisonData = null
         }
