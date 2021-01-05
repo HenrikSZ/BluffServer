@@ -147,28 +147,40 @@ class Game {
         }
     }
 
-    prepare(newGame) {
-        if (!newGame) {
-            const diff = this.comparisonData.target - this.comparisonData.actual
-            const previousPlayerIndex = this.getPreviousActivePlayerIndex()
+    getPublicWinner() {
+        const player = this.players[this.currentTurnIndex]
+        return {
+            username: player.username
+        }
+    }
 
-            if (diff < 0) {
-                this.players[this.currentTurnIndex].dicesTaken = -diff
-                this.currentTurnIndex = previousPlayerIndex
-            } else if (diff > 0) {
-                this.players[previousPlayerIndex].dicesTaken = diff
-            } else {
-                this.players.forEach((p, i) => {
-                    if (i != previousPlayerIndex) {
-                        p.dicesTaken = 1
-                    }
-                })
+    refute(comparisonData) {
+        const diff = comparisonData.target - comparisonData.actual
+        const previousPlayerIndex = this.getPreviousActivePlayerIndex()
 
-                this.currentTurnIndex = previousPlayerIndex
-            }
-            this.comparisonData = null
+        if (diff < 0) {
+            this.players[this.currentTurnIndex].dicesTaken = -diff
+            this.currentTurnIndex = previousPlayerIndex
+        } else if (diff > 0) {
+            this.players[previousPlayerIndex].dicesTaken = diff
+        } else {
+            this.players.forEach((p, i) => {
+                if (i != previousPlayerIndex) {
+                    p.dicesTaken = 1
+                }
+            })
+
+            this.currentTurnIndex = previousPlayerIndex
         }
 
+        const activePlayerCount = this.players.filter(p => p.diceCount() > 0).length
+
+        if (activePlayerCount == 1) {
+            return this.players.findIndex(p => p.diceCount() > 0)
+        }
+    }
+
+    prepare(newGame) {
         this.players.forEach(p => {
             p.rollTheDices(newGame)
         })

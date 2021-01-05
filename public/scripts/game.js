@@ -65,7 +65,7 @@ class NextRoundButton extends Button {
     }
 
     onRefute(data) {
-        this.isVisible = data.ownTurn
+        this.isVisible = data.ownTurn && !data.winnerFound
     }
 
     onNextRound() {
@@ -102,6 +102,40 @@ class LieButton extends Button {
     }
 }
 
+class NextGameButton extends Button {
+    constructor(x, y, board, ctx) {
+        super(x, y, 'Nächste Runde', ctx)
+
+        this.board = board
+    }
+
+    onClick(x, y) {
+        if (super.onClick(x, y)) {
+            //this.board.gameCanvas.newGame()
+            return true
+        }
+
+        return false
+    }
+
+    onRefute() {
+        this.isVisible = false
+    }
+
+    onNextRound() {
+        this.isVisible = false
+    }
+
+    onNextTurn(data) {
+        this.isVisible = data.ownTurn && data.dice.face > 0
+    }
+
+    onRefute(data) {
+        console.log(data.ownTurn && data.winnerFound)
+        this.isVisible = data.ownTurn && data.winnerFound
+    }
+}
+
 class ComparisonGraphic {
     constructor(x, y, dicesImage, board, ctx) {        
         //const textWidth = ctx.measureText('Aufdecken').width
@@ -113,6 +147,7 @@ class ComparisonGraphic {
 
         this.board = board
         this.nextRoundButton = new NextRoundButton(x - 200 / 2, y + 40, board, ctx)
+        this.nextGameButton = new NextGameButton(x - 200 / 2, y + 40, board, ctx)
         this.isVisible = false
     }
 
@@ -150,6 +185,7 @@ class ComparisonGraphic {
             ctx.drawImage(this.dicesImage, 200 * this.comparisonData.dice.face, 0, 200, 200, this.x + 20 + 10 + 20, this.y - 50 / 2, 50, 50)
 
             this.nextRoundButton.draw(ctx)
+            this.nextGameButton.draw(ctx)
         }
     }
 
@@ -158,6 +194,7 @@ class ComparisonGraphic {
         this.comparisonData = data.comparisonData
 
         this.nextRoundButton.onRefute(data)
+        this.nextGameButton.onRefute(data)
     }
 
     onNextRound() {
@@ -555,6 +592,7 @@ class Player {
         this.dicesImage = dicesImage
 
         this.currentTurnTextX = x - ctx.measureText('current turn').width / 2
+        this.winnerTextX = x - ctx.measureText('Winner').width / 2
         this.nameX = x - ctx.measureText(playerData.username).width / 2
     }
 
@@ -590,10 +628,26 @@ class Player {
         ctx.fillText('current turn', this.currentTurnTextX, this.y + 25 + 15)
     }
 
+    drawWinner(ctx) {
+        const rectX = this.x - 200 / 2
+
+        ctx.fillStyle = '#0bd63e'
+        ctx.fillRect(rectX, this.y + 25, 200, 30)
+
+        ctx.strokeStyle = '#096b21'
+        ctx.strokeRect(rectX, this.y + 25, 200, 30)
+
+        ctx.fillStyle = '#096b21'
+        ctx.textBaseline = 'middle'
+        ctx.fillText('Winner', this.winnerTextX, this.y + 25 + 15)
+    }
+
     draw(ctx) {
         this.drawName(ctx)
         this.drawDices(ctx)
-        if (this.playerData.atTurn) {
+        if (this.playerData.isWinner) {
+            this.drawWinner(ctx)
+        } else if (this.playerData.atTurn) {
             this.drawAtTurn(ctx)
         }
     }
@@ -665,6 +719,10 @@ class GameCanvas {
 
     onRefute(data) {
         data.ownTurn = this.thisPlayer.playerData.atTurn
+        if (typeof data.winnerIndex === 'number') {
+            data.winnerFound = true
+            this.players[data.winnerIndex].playerData.isWinner = true
+        }
         this.currentTurnIndex = null
 
         this.board.onRefute(data)
@@ -755,6 +813,7 @@ function game() {
         gameState: '',
         game: {},
         player: {},
+        winner: {},
         authenticated: false,
         rejoin: false,
         players: [],

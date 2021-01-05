@@ -54,6 +54,12 @@ class Player {
         }
     }
 
+    diceCount() {
+        const diceCount = this.dices.length - this.dicesTaken
+
+        return diceCount > 0 ? diceCount : 0
+    }
+
     rollTheDices(reset) {
         let diceCount = reset ? 5 : this.dices.length - this.dicesTaken
 

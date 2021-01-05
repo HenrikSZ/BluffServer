@@ -196,11 +196,16 @@ class GameController {
                 dice: socket.player.game.dice
             }
 
-            socket.player.game.comparisonData = comparisonData
+            const winnerIndex = socket.player.game.refute(comparisonData)
+
+            if (typeof winnerIndex === 'number') {
+                socket.player.game.state = 'end'
+            }
 
             p.socket.emit('refute', {
                 dices: diceList,
-                comparisonData: comparisonData
+                comparisonData: comparisonData,
+                winnerIndex: winnerIndex
             })
         })
     }
@@ -217,6 +222,7 @@ class GameController {
         }
 
         socket.player.game.prepare(false)
+    
         socket.player.game.players.forEach(p => {
             p.socket.emit('playerlist', socket.player.game.getCustomPlayerList(p))
             p.socket.emit('nextturn', socket.player.game.getCustomGameStateFor(p))
