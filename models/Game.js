@@ -66,7 +66,7 @@ class Game {
         return target
     }
 
-    getCustomDicesList(player) {
+    getCustomDiceList(player) {
         const target = []
 
         let i = this.players.indexOf(player)
@@ -90,15 +90,23 @@ class Game {
         return target
     }
 
-    getCustomGameStateFor(player) {
+    getPublicDiceList() {
+        return this.players.map(p => p.dices)
+    }
+
+    getCustomIndex(player, index) {
         let i = this.players.indexOf(player)
 
-        let delta = this.currentTurnIndex - i
+        let delta = index - i
         if (delta < 0) delta += this.players.length
 
+        return delta
+    }
+
+    getCustomGameStateFor(player) {
         return {
             dice: this.dice,
-            currentTurnIndex: delta
+            currentTurnIndex: this.getCustomIndex(player, this.currentTurnIndex)
         }
     }
 

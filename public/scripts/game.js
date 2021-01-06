@@ -111,7 +111,7 @@ class NextGameButton extends Button {
 
     onClick(x, y) {
         if (super.onClick(x, y)) {
-            //this.board.gameCanvas.newGame()
+            this.board.gameCanvas.startGame()
             return true
         }
 
@@ -131,8 +131,7 @@ class NextGameButton extends Button {
     }
 
     onRefute(data) {
-        console.log(data.ownTurn && data.winnerFound)
-        this.isVisible = data.ownTurn && data.winnerFound
+        this.isVisible = /*data.isAdmin &&*/ data.winnerFound
     }
 }
 
@@ -202,10 +201,12 @@ class ComparisonGraphic {
     }
 
     onClick(x, y) {
-        if (this.nextRoundButton.onClick(x, y)) {
-            return true
+        if (this.isVisible) {
+            if (this.nextRoundButton.onClick(x, y) || this.nextGameButton.onClick(x, y)) {
+                return true
+            }
         }
-
+        
         return false
     }
 }
@@ -746,6 +747,10 @@ class GameCanvas {
         data.ownTurn = !!this.thisPlayer.playerData.atTurn
 
         this.board.onNextTurn(data)
+    }
+
+    startGame() {
+        this.socket.emit('start')
     }
 
     refute() {

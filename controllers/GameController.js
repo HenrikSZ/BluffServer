@@ -114,7 +114,7 @@ class GameController {
         if (!socket.player.game) {
             throw new Error('Not in any game')
         }
-        if (socket.player.game.state != 'lobby') {
+        if (socket.player.game.state != 'lobby' && socket.player.game.state != 'end') {
             throw new Error('Game not in lobby')
         }
         if (socket.player != socket.player.game.admin) {
@@ -183,29 +183,30 @@ class GameController {
             throw new Error('Player not at turn')
         }
 
-        socket.player.game.state = 'refute'
+        const count = this.countRelevantDices(socket.player.game.getPublicDiceList(), socket.player.game.dice)
+        const target = this.getTargetCount(socket.player.game.dice.position)
+
+        const comparisonData = {
+            actual: count,
+            target: target,
+            dice: socket.player.game.dice
+        }
+
+        const winnerIndex = socket.player.game.refute(comparisonData)
+
+        if (typeof winnerIndex === 'number') {
+            socket.player.game.state = 'end'
+        } else {
+            socket.player.game.state = 'refute'
+        }
 
         socket.player.game.players.forEach(p => {
-            const diceList = socket.player.game.getCustomDicesList(p)
-            const count = this.countRelevantDices(diceList, socket.player.game.dice)
-            const target = this.getTargetCount(socket.player.game.dice.position)
-
-            const comparisonData = {
-                actual: count,
-                target: target,
-                dice: socket.player.game.dice
-            }
-
-            const winnerIndex = socket.player.game.refute(comparisonData)
-
-            if (typeof winnerIndex === 'number') {
-                socket.player.game.state = 'end'
-            }
+            const diceList = socket.player.game.getCustomDiceList(p)
 
             p.socket.emit('refute', {
                 dices: diceList,
                 comparisonData: comparisonData,
-                winnerIndex: winnerIndex
+                winnerIndex: socket.player.game.getCustomIndex(p, winnerIndex)
             })
         })
     }
