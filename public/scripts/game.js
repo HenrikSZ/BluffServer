@@ -68,7 +68,7 @@ class NextRoundButton extends Button {
         this.isVisible = data.ownTurn && !data.winnerFound
     }
 
-    onNextRound() {
+    onGameStart() {
         this.isVisible = false
     }
 }
@@ -93,7 +93,7 @@ class LieButton extends Button {
         this.isVisible = false
     }
 
-    onNextRound() {
+    onGameStart() {
         this.isVisible = false
     }
 
@@ -122,7 +122,7 @@ class NextGameButton extends Button {
         this.isVisible = false
     }
 
-    onNextRound() {
+    onGameStart() {
         this.isVisible = false
     }
 
@@ -196,7 +196,7 @@ class ComparisonGraphic {
         this.nextGameButton.onRefute(data)
     }
 
-    onNextRound() {
+    onGameStart() {
         this.isVisible = false
     }
 
@@ -384,9 +384,9 @@ class Board {
         this.comparisonGraphic.onRefute(data)
     }
 
-    onNextRound() {
-        this.lieButton.onNextRound()
-        this.comparisonGraphic.onNextRound()
+    onGameStart() {
+        this.lieButton.onGameStart()
+        this.comparisonGraphic.onGameStart()
     }
 
     onNextTurn(data) {
@@ -734,8 +734,8 @@ class GameCanvas {
         })
     }
 
-    onNextRound() {
-        this.board.onNextRound()
+    onGameStart() {
+        this.board.onGameStart()
 
         this.players.forEach(p => {
             p.comparisonData = undefined
@@ -818,18 +818,23 @@ function game() {
         gameState: '',
         game: {},
         player: {},
-        winner: {},
         authenticated: false,
         rejoin: false,
         players: [],
         connectSocketIO() {
             this.socket = io()
 
-            this.socket.on('statechange', data => {
-                console.log(`game.statechange[${data}]`)
-                this.gameState = data
+            this.socket.on('gamestart', data => {
+                console.log('game.start')
 
-                //this.gameCanvas.onStateChange(data)
+                this.gameState = 'ingame'
+                this.gameCanvas.onGameStart()
+                this.gameCanvas.draw()
+            })
+            this.socket.on('gamejoin', data => {
+                console.log('game.join')
+
+                this.gameState = 'lobby'
             })
             this.socket.on('gameinfo', data => {
                 console.log(`game.gameinfo`)
@@ -862,12 +867,6 @@ function game() {
                 console.log('game.refute')
 
                 this.gameCanvas.onRefute(data)
-                this.gameCanvas.draw()
-            })
-            this.socket.on('nextround', data => {
-                console.log('game.nextround')
-
-                this.gameCanvas.onNextRound()
                 this.gameCanvas.draw()
             })
 

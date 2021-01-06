@@ -1,4 +1,3 @@
-const { isObject } = require('util')
 const Game = require('../models/Game.js')
 const Player = require('../models/Player.js')
 
@@ -40,8 +39,17 @@ class GameController {
 
         socket.emit('gameinfo', socket.player.game.getPublicGameInfo())
         socket.emit('playerlist', socket.player.game.getCustomPlayerList(socket.player))
-        socket.emit('nextturn', socket.player.game.getCustomGameStateFor(socket.player))
-        socket.emit('statechange', socket.player.game.state)
+
+        switch (this.socket.player.game.state) {
+            case 'lobby':
+                socket.emit('gamejoin')
+                break
+
+            case 'ingame':
+                socket.emit('nextturn', socket.player.game.getCustomGameStateFor(socket.player))
+                socket.emit('gamestart')
+                break
+        }
     }
 
     handleJoin(socket, data) {
@@ -65,7 +73,7 @@ class GameController {
         socket.join(game.inviteCode)
         this.io.to(game.inviteCode).emit('playerlist', game.getPublicPlayerList())
         socket.emit('gameinfo', game.getPublicGameInfo())
-        socket.emit('statechange', 'lobby')
+        socket.emit('gamejoin')
         socket.emit('playerinfo', socket.player.getPublicPlayerInfo())
     }
 
@@ -80,7 +88,7 @@ class GameController {
         const game = socket.player.game        
         socket.player.leaveGame()
 
-        socket.emit('statechange', 'set-username')
+        socket.emit('set-username')
         socket.emit('gameinfo', {})
         socket.player.game.players.forEach(p => {
             p.socket.emit('playerlist', socket.player.game.getCustomPlayerList(p))
@@ -103,7 +111,7 @@ class GameController {
             p.socket.emit('playerlist', socket.player.game.getCustomPlayerList(p))
         })
         socket.emit('gameinfo', game.getPublicGameInfo())
-        socket.emit('statechange', 'lobby')
+        socket.emit('gamejoin')
         socket.emit('playerinfo', socket.player.getPublicPlayerInfo())
     }
 
@@ -128,10 +136,7 @@ class GameController {
             p.socket.emit('nextturn', socket.player.game.getCustomGameStateFor(p))
         })
         
-        //let playerAtTurnSocket = socket.player.game.players[socket.player.game.currentTurnIndex].socket
-
-        this.io.to(socket.player.game.inviteCode).emit('statechange', 'ingame')
-        //this.io.to(socket.player.game.inviteCode).emit('dice', socket.player.game.dice)
+        this.io.to(socket.player.game.inviteCode).emit('gamestart')
     }
 
     handleMove(socket, data) {
@@ -229,7 +234,7 @@ class GameController {
             p.socket.emit('nextturn', socket.player.game.getCustomGameStateFor(p))
         })
 
-        this.io.to(socket.player.game.inviteCode).emit('nextround')
+        this.io.to(socket.player.game.inviteCode).emit('gamestart')
     }
 }
 

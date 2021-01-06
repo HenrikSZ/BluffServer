@@ -49,7 +49,7 @@ html
                                 div(x-text="item.username" :class="{ 'border border-primary': item.isThisPlayer }")
                     button(class="btn btn-danger m-2" @click="leaveGame()") Leave
                     button(class="btn btn-success m-2" x-show="player.isAdmin" @click="startGame()") Start
-                div(x-show="isIngame()")
+                div(x-show="gameState === 'ingame'")
                     div(class="m-4")
                     div(class="text-center")
                         canvas(class="border border-primary" x-ref="gameCanvas" width="1200px" height="600px")
