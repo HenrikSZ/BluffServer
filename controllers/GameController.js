@@ -184,7 +184,6 @@ class GameController {
             throw new Error('Invalid move')
         }
 
-        // TODO check client data
         socket.player.game.dice = data
         socket.player.game.nextTurn()
         socket.player.game.players.forEach((p) => {
