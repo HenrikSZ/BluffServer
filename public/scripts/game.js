@@ -610,7 +610,7 @@ class Player {
             const totalWidth = this.playerData.dices.length * 50 + (this.playerData.dices.length - 1) * spacing
 
             this.playerData.dices.forEach((d, index) => {
-                const highlighted = typeof this.comparisonData === 'object' && this.comparisonData.dice.face == d
+                const highlighted = typeof this.comparisonData === 'object' && (this.comparisonData.dice.face == d || d == 6)
                 ctx.drawImage(this.dicesImage, d * 200, highlighted ? 200 : 0, 200, 200, this.x - totalWidth / 2 + (50 + spacing) * index, this.y - 30, 50, 50)
             })
         } else {

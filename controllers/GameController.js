@@ -170,7 +170,7 @@ class GameController {
 
         diceList.forEach(d => {
             d.forEach(d => {
-                if (d == dice.face) count++
+                if (d == dice.face || d == 6) count++
             })
         })
 
