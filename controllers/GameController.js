@@ -149,12 +149,39 @@ class GameController {
         this.io.to(socket.player.game.inviteCode).emit('gamestart')
     }
 
+    isValidMove(move, currentState) {
+        if (typeof move.position !== 'number' || typeof move.face !== 'number')
+            return false
+            
+        if (move.position > 29 || move.face > 6 || move.face < 1)
+            return false
+
+        if (move.position < currentState.position)
+            return false
+
+        if (move.position == currentState.position && move.face <= currentState.face)
+            return false
+
+        if ((move.position + 2) % 3 == 0) {
+            if (move.face != 6)
+                return false
+        } else {
+            if (move.face == 6)
+                return false
+        }
+
+        return true
+    }
+
     handleMove(socket, data) {
         if (!socket.player) {
             throw new Error('Not authenticated as player')
         }
         if (socket.player.game.players[socket.player.game.currentTurnIndex] != socket.player) {
            throw new Error('Player not admin of this game')
+        }
+        if (!this.isValidMove(data, socket.player.game.dice))  {
+            throw new Error('Invalid move')
         }
 
         // TODO check client data
