@@ -148,11 +148,13 @@ class Game {
     }
 
     nextTurn() {
-        this.currentTurnIndex++
+        do {
+            this.currentTurnIndex++
+            if (this.currentTurnIndex == this.players.length) {
+                this.currentTurnIndex = 0
+            }
 
-        if (this.currentTurnIndex == this.players.length || this.players[this.currentTurnIndex].diceCount <= 0) {
-            this.currentTurnIndex = 0
-        }
+        } while (!this.players[this.currentTurnIndex].inPlay())
     }
 
     getPublicWinner() {

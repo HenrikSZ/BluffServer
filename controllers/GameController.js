@@ -15,7 +15,7 @@ class GameController {
         }
 
         if (data.token) {
-            socket.player = this.playerManager.getFromToken(data.token, this.asyncMysql)
+            socket.player = this.playerManager.getFromToken(data.token)
             if (!socket.player) {
                 throw new Error('Invalid token')
             }
