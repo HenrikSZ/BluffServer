@@ -13,6 +13,7 @@ html
             div(x-data="game()", x-init=`username = '${player ? player.username : ''}'; rejoin = ${player ? !!player.game : false}; connectSocketIO()`)
                 img(class="d-none" src="/images/dices.png" x-ref="dicesImage")
                 img(class="d-none" src="/images/bubble.png" x-ref="bubbleImage")
+                img(class="d-none" src="/images/cross.png" x-ref="crossImage")
                 div(class='jumbotron text-center')
                     h1(class="text-primary") Bluff Online
                 

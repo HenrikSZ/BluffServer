@@ -583,12 +583,13 @@ class SimpleField extends Field {
 }
 
 class Player {
-    constructor(playerData, x, y, dicesImage, ctx) {
+    constructor(playerData, x, y, dicesImage, crossImage, ctx) {
         this.playerData = playerData
         this.x = x
         this.y = y
 
         this.dicesImage = dicesImage
+        this.crossImage = crossImage
 
         this.currentTurnTextX = x - ctx.measureText('current turn').width / 2
         this.winnerTextX = x - ctx.measureText('Winner').width / 2
@@ -603,14 +604,18 @@ class Player {
     }
 
     drawDices(ctx) {
-        const spacing = 50 / 10
+        if (this.playerData.dices.length > 0) {
+            const spacing = 50 / 10
 
-        const totalWidth = this.playerData.dices.length * 50 + (this.playerData.dices.length - 1) * spacing
+            const totalWidth = this.playerData.dices.length * 50 + (this.playerData.dices.length - 1) * spacing
 
-        this.playerData.dices.forEach((d, index) => {
-            const highlighted = typeof this.comparisonData === 'object' && this.comparisonData.dice.face == d
-            ctx.drawImage(this.dicesImage, d * 200, highlighted ? 200 : 0, 200, 200, this.x - totalWidth / 2 + (50 + spacing) * index, this.y - 30, 50, 50)
-        })
+            this.playerData.dices.forEach((d, index) => {
+                const highlighted = typeof this.comparisonData === 'object' && this.comparisonData.dice.face == d
+                ctx.drawImage(this.dicesImage, d * 200, highlighted ? 200 : 0, 200, 200, this.x - totalWidth / 2 + (50 + spacing) * index, this.y - 30, 50, 50)
+            })
+        } else {
+            ctx.drawImage(this.crossImage, this.x - 50 / 2, this.y - 30, 50, 50)
+        }
     }
 
     drawAtTurn(ctx) {
@@ -653,12 +658,13 @@ class Player {
 }
 
 class GameCanvas {
-    constructor(canvas, dicesImage, bubbleImage, socket, players) {
+    constructor(canvas, dicesImage, bubbleImage, crossImage, socket, players) {
         this.canvas = canvas
         this.ctx = canvas.getContext('2d')
         this.board = new Board(dicesImage, bubbleImage, this, this.ctx)
         this.dicesImage = dicesImage
         this.bubbleImage = bubbleImage
+        this.crossImage = crossImage
         this.socket = socket
 
         this.canvas.addEventListener('click', this.onClick.bind(this))
@@ -677,7 +683,7 @@ class GameCanvas {
     set players(players) {
         this.playersAcc = []
 
-        this.players.push(new Player(players[0], 600, 300 + 220, this.dicesImage, this.ctx))
+        this.players.push(new Player(players[0], 600, 300 + 220, this.dicesImage, this.crossImage, this.ctx))
 
         switch(players.length) {
             case 2:
@@ -767,33 +773,33 @@ class GameCanvas {
     }
 
     create2Players(players) {
-        this.players.push(new Player(players[1], 600, 300 - 220, this.dicesImage, this.ctx))
+        this.players.push(new Player(players[1], 600, 300 - 220, this.dicesImage, this.crossImage, this.ctx))
     }
 
     create3Players(players) {
-        this.players.push(new Player(players[1], 600 - 400, 300, this.dicesImage, this.ctx))
-        this.players.push(new Player(players[2], 600 + 400, 300, this.dicesImage, this.ctx))
+        this.players.push(new Player(players[1], 600 - 400, 300, this.dicesImage, this.crossImage, this.ctx))
+        this.players.push(new Player(players[2], 600 + 400, 300, this.dicesImage, this.crossImage, this.ctx))
     }
 
     create4Players(players) {
-        this.players.push(new Player(players[1], 600 - 400, 300, this.dicesImage, this.ctx))
-        this.players.push(new Player(players[2], 600, 300 - 220, this.dicesImage, this.ctx))
-        this.players.push(new Player(players[3], 600 + 400, 300, this.dicesImage, this.ctx))
+        this.players.push(new Player(players[1], 600 - 400, 300, this.dicesImage, this.crossImage, this.ctx))
+        this.players.push(new Player(players[2], 600, 300 - 220, this.dicesImage, this.crossImage, this.ctx))
+        this.players.push(new Player(players[3], 600 + 400, 300, this.dicesImage, this.crossImage, this.ctx))
     }
 
     create5Players(players) {
-        this.players.push(new Player(players[1], 600 - 400, 300 + 75, this.dicesImage, this.ctx))
-        this.players.push(new Player(players[2], 600 - 400, 300 - 75, this.dicesImage, this.ctx))
-        this.players.push(new Player(players[3], 600 + 400, 300 - 75, this.dicesImage, this.ctx))
-        this.players.push(new Player(players[4], 600 + 400, 300 + 75, this.dicesImage, this.ctx))
+        this.players.push(new Player(players[1], 600 - 400, 300 + 75, this.dicesImage, this.crossImage, this.ctx))
+        this.players.push(new Player(players[2], 600 - 400, 300 - 75, this.dicesImage, this.crossImage, this.ctx))
+        this.players.push(new Player(players[3], 600 + 400, 300 - 75, this.dicesImage, this.crossImage, this.ctx))
+        this.players.push(new Player(players[4], 600 + 400, 300 + 75, this.dicesImage, this.crossImage, this.ctx))
     }
 
     create6Players(players) {
-        this.players.push(new Player(players[1], 600 - 400, 300 + 75, this.dicesImage, this.ctx))
-        this.players.push(new Player(players[2], 600 - 400, 300 - 75, this.dicesImage, this.ctx))
-        this.players.push(new Player(players[3], 600, 300 - 220, this.dicesImage, this.ctx))
-        this.players.push(new Player(players[4], 600 + 400, 300 - 75, this.dicesImage, this.ctx))
-        this.players.push(new Player(players[5], 600 + 400, 300 + 75, this.dicesImage, this.ctx))
+        this.players.push(new Player(players[1], 600 - 400, 300 + 75, this.dicesImage, this.crossImage, this.ctx))
+        this.players.push(new Player(players[2], 600 - 400, 300 - 75, this.dicesImage, this.crossImage, this.ctx))
+        this.players.push(new Player(players[3], 600, 300 - 220, this.dicesImage, this.crossImage, this.ctx))
+        this.players.push(new Player(players[4], 600 + 400, 300 - 75, this.dicesImage, this.crossImage, this.ctx))
+        this.players.push(new Player(players[5], 600 + 400, 300 + 75, this.dicesImage, this.crossImage, this.ctx))
     }
 
     onClick(event) {
@@ -844,7 +850,7 @@ function game() {
                 this.players = data
 
                 if (!this.gameCanvas) {
-                    this.gameCanvas = new GameCanvas(this.$refs.gameCanvas, this.$refs.dicesImage, this.$refs.bubbleImage, this.socket, data)
+                    this.gameCanvas = new GameCanvas(this.$refs.gameCanvas, this.$refs.dicesImage, this.$refs.bubbleImage, this.$refs.crossImage, this.socket, data)
                 } else {
                     this.gameCanvas.players = data
                 }
