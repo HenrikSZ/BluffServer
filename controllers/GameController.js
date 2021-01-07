@@ -40,21 +40,30 @@ class GameController {
         socket.emit('gameinfo', socket.player.game.getPublicGameInfo())
         socket.emit('playerlist', socket.player.game.getCustomPlayerList(socket.player))
 
-        switch (this.socket.player.game.state) {
+        switch (socket.player.game.state) {
             case 'lobby':
                 socket.emit('gamejoin')
                 break
 
+            case 'refute':
+                const diceList = socket.player.game.getCustomDiceList(socket.player)
+
+                socket.emit('refute', {
+                    dices: diceList,
+                    comparisonData: socket.player.game.comparisonData,
+                    winnerIndex: socket.player.game.winnerIndex
+                })
+                break
+
             case 'ingame':
                 socket.emit('nextturn', socket.player.game.getCustomGameStateFor(socket.player))
-                socket.emit('gamestart')
                 break
         }
     }
 
     handleJoin(socket, data) {
         if (!socket.player) {
-            throw new Error('Player not authenticated')
+            throw new Error('Not authenticated as Player')
         }
         if (!data || !data.inviteCode) {
             throw new Error('Ill formatted')
@@ -80,7 +89,7 @@ class GameController {
 
     handleLeave(socket, data) {
         if (!socket.player) {
-            throw new Error('Player not authenticated')
+            throw new Error('Not authenticated as Player')
         }
         if (!socket.player.game) {
             throw new Error('Player not in game')
@@ -142,10 +151,10 @@ class GameController {
 
     handleMove(socket, data) {
         if (!socket.player) {
-            // Handle not authenticated error
+            throw new Error('Not authenticated as player')
         }
         if (socket.player.game.players[socket.player.game.currentTurnIndex] != socket.player) {
-            // Handle wrong player
+           throw new Error('Player not admin of this game')
         }
 
         // TODO check client data
@@ -182,7 +191,7 @@ class GameController {
 
     handleRefute(socket, data) {
         if (!socket.player) {
-            throw new Error('Player not authenticated')
+            throw new Error('Not authenticated as Player')
         }
 
         if (socket.player.game.players[socket.player.game.currentTurnIndex] != socket.player) {
@@ -219,9 +228,9 @@ class GameController {
 
     handleNextRound(socket, data) {
         if (!socket.player) {
-            throw new Error('Player not authenticated')
+            throw new Error('Not authenticated as Player')
         }
-        if (socket.player.game.players[socket.player.game.currentTurnIndex] != socket.player) {
+        if (socket.player.game.players[socket.player.game.nextRoundButtonPlayerIndex] != socket.player) {
             throw new Error('Player not at turn')
         }
         if (socket.player.game.state !== 'refute') {

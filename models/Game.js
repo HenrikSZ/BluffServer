@@ -167,6 +167,10 @@ class Game {
     }
 
     refute(comparisonData) {
+        this.comparisonData = comparisonData
+        this.state = 'refute'
+        this.nextRoundButtonPlayerIndex = this.currentTurnIndex
+
         const diff = comparisonData.target - comparisonData.actual
         const previousPlayerIndex = this.getPreviousActivePlayerIndex()
 
@@ -187,9 +191,12 @@ class Game {
 
         const activePlayerCount = this.players.filter(p => p.diceCount() > 0).length
 
-        if (activePlayerCount == 1) {
-            return this.players.findIndex(p => p.diceCount() > 0)
-        }
+        if (activePlayerCount == 1)
+            this.winnerIndex = this.players.findIndex(p => p.diceCount() > 0)
+        else
+            this.winnerIndex = undefined
+
+        return this.winnerIndex
     }
 
     prepare(newGame) {

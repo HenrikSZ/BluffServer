@@ -767,7 +767,7 @@ class GameCanvas {
     }
 
     create2Players(players) {
-        this.players.push(new Player(players[1], 600, 300 - 200, this.dicesImage, this.ctx))
+        this.players.push(new Player(players[1], 600, 300 - 220, this.dicesImage, this.ctx))
     }
 
     create3Players(players) {
@@ -777,7 +777,7 @@ class GameCanvas {
 
     create4Players(players) {
         this.players.push(new Player(players[1], 600 - 400, 300, this.dicesImage, this.ctx))
-        this.players.push(new Player(players[2], 600, 300 - 200, this.dicesImage, this.ctx))
+        this.players.push(new Player(players[2], 600, 300 - 220, this.dicesImage, this.ctx))
         this.players.push(new Player(players[3], 600 + 400, 300, this.dicesImage, this.ctx))
     }
 
@@ -791,7 +791,7 @@ class GameCanvas {
     create6Players(players) {
         this.players.push(new Player(players[1], 600 - 400, 300 + 75, this.dicesImage, this.ctx))
         this.players.push(new Player(players[2], 600 - 400, 300 - 75, this.dicesImage, this.ctx))
-        this.players.push(new Player(players[3], 600, 300 - 200, this.dicesImage, this.ctx))
+        this.players.push(new Player(players[3], 600, 300 - 220, this.dicesImage, this.ctx))
         this.players.push(new Player(players[4], 600 + 400, 300 - 75, this.dicesImage, this.ctx))
         this.players.push(new Player(players[5], 600 + 400, 300 + 75, this.dicesImage, this.ctx))
     }
@@ -858,12 +858,14 @@ function game() {
             this.socket.on('nextturn', data => {
                 console.log(`game.gamestate`)
 
+                this.gameState = 'ingame'
                 this.gameCanvas.onNextTurn(data)
                 this.gameCanvas.draw()
             })
             this.socket.on('refute', data => {
                 console.log('game.refute')
 
+                this.gameState = 'ingame'
                 this.gameCanvas.onRefute(data)
                 this.gameCanvas.draw()
             })
