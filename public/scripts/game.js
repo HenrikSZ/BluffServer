@@ -131,7 +131,7 @@ class NextGameButton extends Button {
     }
 
     onRefute(data) {
-        this.isVisible = /*data.isAdmin &&*/ data.winnerFound
+        this.isVisible = data.isAdmin && data.winnerFound
     }
 }
 
@@ -724,6 +724,7 @@ class GameCanvas {
 
     onRefute(data) {
         data.ownTurn = this.thisPlayer.playerData.atTurn
+        data.isAdmin = this.thisPlayer.playerData.isAdmin
         if (typeof data.winnerIndex === 'number') {
             data.winnerFound = true
             this.players[data.winnerIndex].playerData.isWinner = true

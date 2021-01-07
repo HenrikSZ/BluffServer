@@ -2,6 +2,7 @@ const crypto = require('crypto')
 
 class Player {
     async updateUsername(username, asyncMysql) {
+        //TODO fix 
         await asyncMysql.query(`UPDATE players SET username = ${asyncMysql.escape(username)} WHERE id = ${asyncMysql.escape(player.id)}`)
         this.username = username
 

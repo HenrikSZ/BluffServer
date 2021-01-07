@@ -24,12 +24,13 @@ class Game {
                 return {
                     username: p.username,
                     dices: [0, 0, 0, 0, 0],
-                    atTurn: index == this.currentTurnIndex
+                    isAdmin: p == this.admin
                 }
             } else {
                 return {
                     username: p.username,
-                    dices: p.dices
+                    dices: p.dices,
+                    isAdmin: p == this.admin
                 }
             }
         })
@@ -43,7 +44,7 @@ class Game {
         target.push({
             username: player.username,
             dices: this.state === 'ingame' || this.state === 'refute' ? player.dices : [],
-            atTurn: i == this.currentTurnIndex
+            isAdmin: player == this.admin
         })        
 
         i++
@@ -54,7 +55,8 @@ class Game {
         while (this.players[i] != player) {
             target.push({
                 username: this.players[i].username,
-                dices: Array(this.players[i].dices.length).fill(0, 0, this.players[i].dices.length)
+                dices: Array(this.players[i].dices.length).fill(0, 0, this.players[i].dices.length),
+                isAdmin: this.players[i] == this.admin
             })
 
             i++
