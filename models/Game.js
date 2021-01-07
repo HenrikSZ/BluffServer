@@ -162,6 +162,10 @@ class Game {
         }
     }
 
+    isRunning() {
+        return this.state !== 'lobby'
+    }
+
     refute(comparisonData) {
         const diff = comparisonData.target - comparisonData.actual
         const previousPlayerIndex = this.getPreviousActivePlayerIndex()

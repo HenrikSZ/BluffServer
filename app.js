@@ -10,45 +10,56 @@ const PlayerManager = require('./models/PlayerManager.js')
 
 const GameController = require('./controllers/GameController.js')
 
-const app = express()
 const port = 3000
 
-let gameManager, playerManager
+function callControllerFunction(func, socket, data) {
+    try {
+        func(socket, data)
+    } catch (e) {
+        console.log(e)
 
-app.set('view engine', 'pug')
-app.use(express.json())
-app.use(cookieParser())
-
-app.use((req, res, next) => {
-    req.player = playerManager.getFromToken(req.cookies.token)
-    if (req.body.username) {
-        req.player.updateUsername(username)
+        const errorPacket = {
+            name: e.name,
+            message: e.message
+        }
+        
+        socket.emit('error', errorPacket)
     }
-    next()
-})
+}
 
-app.get('/', (req, res) => {
-    res.render('game', { player: req.player })
-})
 
-app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '/public' + req.originalUrl))
-})
+function setupRoutes(app, gameController) {
+    app.set('view engine', 'pug')
+    app.use(express.json())
+    app.use(cookieParser())
 
-const server = http.createServer(app)
-const io = socketio(server)
+    app.use((req, res, next) => {
+        req.player = gameController.playerManager.getFromToken(req.cookies.token)
+        if (req.body.username) {
+            req.player.updateUsername(username)
+        }
+        next()
+    })
+    
+    app.get('/', (req, res) => {
+        res.render('game', { player: req.player })
+    })
+    
+    app.get('*', (req, res) => {
+        res.sendFile(path.join(__dirname, '/public' + req.originalUrl))
+    })
 
-server.listen(port, async () => {
-    playerManager = await PlayerManager.createAndLoadPlayers(asyncMysql)
-    gameManager = GameManager.create()
-    const gameController = new GameController(io, asyncMysql, gameManager, playerManager)
+}
 
+function setupSocketIO(io, gameController) {
     io.on('connection', socket => {
         socket.on('create', data => {
-            gameController.handleCreate(socket, data)
+            console.log('game.create')
+            callControllerFunction(gameController.handleCreate.bind(gameController), socket, data)
         })
         socket.on('start', data => {
-            gameController.handleStart(socket, data)
+            console.log('game.start')
+            callControllerFunction(gameController.handleStart.bind(gameController), socket, data)
         })
 
         socket.on('auth', async data => {
@@ -61,20 +72,42 @@ server.listen(port, async () => {
             }
         })
         socket.on('join', data => {
-            gameController.handleJoin(socket, data)
+            console.log('game.join')
+            callControllerFunction(gameController.handleJoin.bind(gameController), socket, data)
         })
         socket.on('leave', data => {
-            gameController.handleLeave(socket, data)
+            console.log('game.leave')
+            callControllerFunction(gameController.handleLeave.bind(gameController), socket, data)
         })
         socket.on('move', data => {
-            gameController.handleMove(socket, data)
+            console.log('game.move')
+            callControllerFunction(gameController.handleMove.bind(gameController), socket, data)
         })
         socket.on('refute', data => {
-            gameController.handleRefute(socket, data)
+            console.log('game.refute')
+            callControllerFunction(gameController.handleRefute.bind(gameController), socket, data)
         })
         socket.on('nextround', data => {
-            gameController.handleNextRound(socket, data)
+            console.log('game.nextround')
+            callControllerFunction(gameController.handleNextRound.bind(gameController), socket, data)
         })
     })
-    console.log(`sys.list.port[${port}]`)
+}
+
+PlayerManager.createAndLoadPlayers(asyncMysql)
+.then((playerManager) => {
+
+    const app = express()
+    const server = http.createServer(app)
+    const io = socketio(server)
+
+    const gameManager = GameManager.create()
+    const gameController = new GameController(io, asyncMysql, gameManager, playerManager)
+
+    setupRoutes(app, gameController)
+    setupSocketIO(io, gameController)
+    
+    server.listen(port, () => {
+        console.log(`sys.list.port[${port}]`)
+    })
 })

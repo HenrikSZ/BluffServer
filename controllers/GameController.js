@@ -10,27 +10,27 @@ class GameController {
     }
 
     async handleAuth(socket, data) {
-        if (data) {
-            if (data.token) {
-                socket.player = this.playerManager.getFromToken(data.token, this.asyncMysql)
-                if (!socket.player) {
-                    throw new Error('Invalid token')
-                }
-
-            } else if (data.username) {
-                socket.player = await Player.createNew(data.username, this.asyncMysql)
-                this.playerManager.addPlayer(socket.player)
-            } else {
-                throw new Error('Invalid field combination for auth')
-            }
-
-            socket.player.socket = socket
-            socket.emit('playerinfo', socket.player.getPublicPlayerInfo())
-            if (socket.player.game) {
-                this.rejoinPlayer(socket)
-            }
-        } else {
+        if (!data) {
             throw new Error('Missing data for auth')
+        }
+
+        if (data.token) {
+            socket.player = this.playerManager.getFromToken(data.token, this.asyncMysql)
+            if (!socket.player) {
+                throw new Error('Invalid token')
+            }
+
+        } else if (data.username) {
+            socket.player = await Player.createNew(data.username, this.asyncMysql)
+            this.playerManager.addPlayer(socket.player)
+        } else {
+            throw new Error('Invalid field combination for auth')
+        }
+
+        socket.player.socket = socket
+        socket.emit('playerinfo', socket.player.getPublicPlayerInfo())
+        if (socket.player.game) {
+            this.rejoinPlayer(socket)
         }
     }
 
@@ -57,21 +57,22 @@ class GameController {
             throw new Error('Player not authenticated')
         }
         if (!data || !data.inviteCode) {
-            // Handle ill-formatted error
+            throw new Error('Ill formatted')
         }
         
         let game = this.gameManager.getFromInviteCode(data.inviteCode)
         if (!game) {
             throw new Error('Game not found')
         }
-        if (game.state == 'running') {
-            // Handle game already running
+        if (game.isRunning()) {
+            throw new Error('Game already running')
         }
 
         socket.player.joinGame(game)
 
         socket.join(game.inviteCode)
         this.io.to(game.inviteCode).emit('playerlist', game.getPublicPlayerList())
+        
         socket.emit('gameinfo', game.getPublicGameInfo())
         socket.emit('gamejoin')
         socket.emit('playerinfo', socket.player.getPublicPlayerInfo())

@@ -137,8 +137,6 @@ class NextGameButton extends Button {
 
 class ComparisonGraphic {
     constructor(x, y, dicesImage, board, ctx) {        
-        //const textWidth = ctx.measureText('Aufdecken').width
-
         this.x = x
         this.y = y
 
