@@ -3,14 +3,36 @@ const socketio = require('socket.io')
 const http = require('http')
 const cookieParser = require('cookie-parser')
 const path = require('path')
-const asyncMysql = require('./dbConnection.js')
+const mysql = require('mysql')
+const promisify = require('util').promisify
+
+const config = require('dotenv').config()
+
+if (config.error) {
+    throw new Error(error)
+}
 
 const GameManager = require('./models/GameManager.js')
 const PlayerManager = require('./models/PlayerManager.js')
 
 const GameController = require('./controllers/GameController.js')
 
-const port = 3000
+const dbConnection = mysql.createConnection({
+    host: config.parsed.DB_HOST,
+    user: config.parsed.DB_USER,
+    password: config.parsed.DB_PASS,
+    database: config.parsed.DB_NAME
+})
+
+const asyncQuery = promisify(dbConnection.query).bind(dbConnection)
+const escape = dbConnection.escape.bind(dbConnection)
+
+const asyncMysql = {
+    query: asyncQuery,
+    escape: escape
+ }
+
+const port = config.parsed.PORT
 
 function callControllerFunction(func, socket, data) {
     try {
