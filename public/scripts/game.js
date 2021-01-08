@@ -646,9 +646,29 @@ class Player {
         ctx.fillText('Winner', this.winnerTextX, this.y + 25 + 15)
     }
 
+    drawConnected(ctx) {
+        console.log(this.x + (this.x - this.nameX) + 10)
+        console.log(this.y - 45)
+
+        if (this.playerData.isConnected) {
+            ctx.fillStyle = 'green'
+        } else {
+            ctx.fillStyle = '#bfaaaa'
+        }
+
+        console.log(this.playerData.isConnected)
+
+        ctx.beginPath()
+        ctx.ellipse(this.x + (this.x - this.nameX) + 10, this.y - 46, 8, 8, 0, 0, 2 * Math.PI)
+
+        ctx.fill()
+    }
+
     draw(ctx) {
         this.drawName(ctx)
         this.drawDices(ctx)
+
+        this.drawConnected(ctx)
         if (this.playerData.isWinner) {
             this.drawWinner(ctx)
         } else if (this.playerData.atTurn) {
@@ -851,7 +871,8 @@ function game() {
                 this.players = data
 
                 if (!this.gameCanvas) {
-                    this.gameCanvas = new GameCanvas(this.$refs.gameCanvas, this.$refs.dicesImage, this.$refs.bubbleImage, this.$refs.crossImage, this.socket, data)
+                    this.gameCanvas = new GameCanvas(this.$refs.gameCanvas,
+                        this.$refs.dicesImage, this.$refs.bubbleImage, this.$refs.crossImage, this.socket, data)
                 } else {
                     this.gameCanvas.players = data
                 }
@@ -919,6 +940,7 @@ function game() {
         leaveGame() {
             if (this.game) {
                 this.socket.emit('leave')
+                this.gameState = 'set-username'
             }
         },
         startGame() {

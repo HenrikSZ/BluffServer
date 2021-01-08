@@ -60,7 +60,7 @@ class GameController {
             throw new Error('Invalid field combination for auth')
         }
 
-        socket.player.isConnected = false
+        socket.player.isConnected = true
         this.playerManager.removeDisconnectedPlayer(socket.player)
         socket.player.socket = socket
         socket.emit('playerinfo', socket.player.getPublicPlayerInfo())

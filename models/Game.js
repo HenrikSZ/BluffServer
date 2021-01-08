@@ -48,6 +48,7 @@ class Game {
             username: player.username,
             dices: this.state === 'ingame' || this.state === 'refute' ? player.dices : [],
             isAdmin: player == this.admin,
+            isConnected: true,
             atTurn: this.currentTurnIndex == i
         })        
 
@@ -62,7 +63,7 @@ class Game {
                 dices: Array(this.players[i].dices.length).fill(0, 0, this.players[i].dices.length),
                 isAdmin: this.players[i] == this.admin,
                 isConnected: this.players[i].isConnected,
-                atTurn: this.currentTurnIndex == i
+                atTurn: this.currentTurnIndex == i,
             })
 
             i++
@@ -183,6 +184,8 @@ class Game {
 
         const diff = comparisonData.target - comparisonData.actual
         const previousPlayerIndex = this.getPreviousActivePlayerIndex()
+
+        // TODO fix bug when all other players left the game
 
         if (diff < 0) {
             this.players[this.currentTurnIndex].dicesTaken = -diff
