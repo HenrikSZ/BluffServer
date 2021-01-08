@@ -12,6 +12,7 @@ class Game {
         this.inviteCode = crypto.randomBytes(4).toString('hex')
         this.state = 'lobby'
         this.currentTurnIndex = 0
+        this.isConnected = false
         this.dice = {
             face: 0,
             position: 0
@@ -24,13 +25,15 @@ class Game {
                 return {
                     username: p.username,
                     dices: [0, 0, 0, 0, 0],
-                    isAdmin: p == this.admin
+                    isAdmin: p == this.admin,
+                    isConnected: p.isConnected,
                 }
             } else {
                 return {
                     username: p.username,
                     dices: p.dices,
-                    isAdmin: p == this.admin
+                    isAdmin: p == this.admin,
+                    isConnected: p.isConnected,
                 }
             }
         })
@@ -44,7 +47,8 @@ class Game {
         target.push({
             username: player.username,
             dices: this.state === 'ingame' || this.state === 'refute' ? player.dices : [],
-            isAdmin: player == this.admin
+            isAdmin: player == this.admin,
+            atTurn: this.currentTurnIndex == i
         })        
 
         i++
@@ -56,7 +60,9 @@ class Game {
             target.push({
                 username: this.players[i].username,
                 dices: Array(this.players[i].dices.length).fill(0, 0, this.players[i].dices.length),
-                isAdmin: this.players[i] == this.admin
+                isAdmin: this.players[i] == this.admin,
+                isConnected: this.players[i].isConnected,
+                atTurn: this.currentTurnIndex == i
             })
 
             i++

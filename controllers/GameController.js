@@ -19,6 +19,21 @@ class GameController {
         this.asyncMysql = asyncMysql
         this.gameManager = gameManager
         this.playerManager = playerManager
+
+        this.cleanInterval = 1000
+
+        setInterval(this.cleanGames.bind(this), this.cleanInterval)
+    }
+
+    cleanGames() {
+        let games = this.playerManager.cleanDisconnectedPlayers(this.cleanInterval)
+
+        games.forEach(g => {
+            g.players.forEach(p => {
+                if (p.socket)
+                    p.socket.emit('playerlist', g.getCustomPlayerList(p))
+            })
+        })
     }
 
     /**
@@ -45,6 +60,8 @@ class GameController {
             throw new Error('Invalid field combination for auth')
         }
 
+        socket.player.isConnected = false
+        this.playerManager.removeDisconnectedPlayer(socket.player)
         socket.player.socket = socket
         socket.emit('playerinfo', socket.player.getPublicPlayerInfo())
         if (socket.player.game) {
@@ -136,13 +153,14 @@ class GameController {
             throw new Error('Player not in game')
         }
 
-        const game = socket.player.game        
+        const game = socket.player.game
         socket.player.leaveGame()
 
         socket.emit('set-username')
         socket.emit('gameinfo', {})
-        socket.player.game.players.forEach(p => {
-            p.socket.emit('playerlist', socket.player.game.getCustomPlayerList(p))
+        game.players.forEach(p => {
+            if (p.socket)
+                p.socket.emit('playerlist', game.getCustomPlayerList(p))
         })
     }
 
@@ -167,7 +185,8 @@ class GameController {
 
         socket.join(game.inviteCode)
         socket.player.game.players.forEach(p => {
-            p.socket.emit('playerlist', socket.player.game.getCustomPlayerList(p))
+            if (p.socket)
+                p.socket.emit('playerlist', socket.player.game.getCustomPlayerList(p))
         })
         socket.emit('gameinfo', game.getPublicGameInfo())
         socket.emit('gamejoin')
@@ -199,8 +218,10 @@ class GameController {
         // TODO
         socket.player.game.prepare(true)
         socket.player.game.players.forEach(p => {
-            p.socket.emit('playerlist', socket.player.game.getCustomPlayerList(p, false))
-            p.socket.emit('nextturn', socket.player.game.getCustomGameStateFor(p))
+            if (p.socket) {
+                p.socket.emit('playerlist', socket.player.game.getCustomPlayerList(p, false))
+                p.socket.emit('nextturn', socket.player.game.getCustomGameStateFor(p))
+            }
         })
         
         this.io.to(socket.player.game.inviteCode).emit('gamestart')
@@ -260,7 +281,8 @@ class GameController {
         socket.player.game.dice = data
         socket.player.game.nextTurn()
         socket.player.game.players.forEach((p) => {
-            p.socket.emit('nextturn', socket.player.game.getCustomGameStateFor(p))
+            if (p.socket)
+                p.socket.emit('nextturn', socket.player.game.getCustomGameStateFor(p))
         })
     }
 
@@ -340,11 +362,12 @@ class GameController {
         socket.player.game.players.forEach(p => {
             const diceList = socket.player.game.getCustomDiceList(p)
 
-            p.socket.emit('refute', {
-                dices: diceList,
-                comparisonData: comparisonData,
-                winnerIndex: socket.player.game.getCustomIndex(p, winnerIndex)
-            })
+            if (p.socket)
+                p.socket.emit('refute', {
+                    dices: diceList,
+                    comparisonData: comparisonData,
+                    winnerIndex: socket.player.game.getCustomIndex(p, winnerIndex)
+                })
         })
     }
 
@@ -370,11 +393,37 @@ class GameController {
         socket.player.game.prepare(false)
     
         socket.player.game.players.forEach(p => {
-            p.socket.emit('playerlist', socket.player.game.getCustomPlayerList(p))
-            p.socket.emit('nextturn', socket.player.game.getCustomGameStateFor(p))
+            if (p.socket) {
+                p.socket.emit('playerlist', socket.player.game.getCustomPlayerList(p))
+                p.socket.emit('nextturn', socket.player.game.getCustomGameStateFor(p))
+            }
         })
 
         this.io.to(socket.player.game.inviteCode).emit('gamestart')
+    }
+
+    handleDisconnect(socket, data) {
+        if (!socket.player) {
+            return
+        }
+
+        socket.player.isConnected = false
+
+        if (socket.player.game) {
+            const game = socket.player.game
+
+            if (game.state === 'lobby') {
+                socket.player.leaveGame()
+            }
+            this.playerManager.addDisconnectedPlayer(socket.player)
+
+            game.players.forEach(p => {
+                if (p.socket)
+                    p.socket.emit('playerlist', game.getCustomPlayerList(p))
+            })
+        }
+
+        socket.player.socket = null
     }
 }
 

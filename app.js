@@ -113,6 +113,10 @@ function setupSocketIO(io, gameController) {
             console.log('game.nextround')
             callControllerFunction(gameController.handleNextRound.bind(gameController), socket, data)
         })
+
+        socket.on('disconnect', data => {
+            callControllerFunction(gameController.handleDisconnect.bind(gameController), socket, data)
+        })
     })
 }
 
