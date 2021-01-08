@@ -1,7 +1,19 @@
+const { Server, Socket } = require('socket.io')
 const Game = require('../models/Game.js')
+const GameManager = require('../models/GameManager.js')
 const Player = require('../models/Player.js')
+const PlayerManager = require('../models/PlayerManager.js')
 
+
+/** Class that acts as the controller for games, roughly following the MVC paradigm */
 class GameController {
+    /**
+     * 
+     * @param {Server} io - The socket io Object to emit events
+     * @param {object} asyncMysql - An object containg a promisified query function and an escape function
+     * @param {GameManager} gameManager - The GameManager providing access to all games
+     * @param {PlayerManager} playerManager - The PlayerManager providing access to all players
+     */
     constructor(io, asyncMysql, gameManager, playerManager) {
         this.io = io
         this.asyncMysql = asyncMysql
@@ -9,6 +21,12 @@ class GameController {
         this.playerManager = playerManager
     }
 
+    /**
+     * Handles the auth part of the Game
+     * 
+     * @param {Socket} socket - The socket to the client
+     * @param {object} data - The data sent with the auth event
+     */
     async handleAuth(socket, data) {
         if (!data) {
             throw new Error('Missing data for auth')
@@ -33,6 +51,13 @@ class GameController {
             this.rejoinPlayer(socket)
         }
     }
+
+
+    /**
+     * Sends all necessary data to a client who has reconnected
+     * 
+     * @param {Socket} socket - The socket to the client
+     */
 
     rejoinPlayer(socket) {
         socket.join(socket.player.game.inviteCode)
@@ -61,6 +86,14 @@ class GameController {
         }
     }
 
+
+    /**
+     * Handles the joining of a player to an existing game
+     * 
+     * @param {Socket} socket - The socket to the client
+     * @param {object} data - The data sent with the join event
+     */
+
     handleJoin(socket, data) {
         if (!socket.player) {
             throw new Error('Not authenticated as Player')
@@ -87,6 +120,14 @@ class GameController {
         socket.emit('playerinfo', socket.player.getPublicPlayerInfo())
     }
 
+
+    /**
+     * Handles the leaving of a player
+     * 
+     * @param {Socket} socket - The socket to the client
+     * @param {object} data - The data sent with the leave event (Should be none)
+     */
+
     handleLeave(socket, data) {
         if (!socket.player) {
             throw new Error('Not authenticated as Player')
@@ -104,6 +145,14 @@ class GameController {
             p.socket.emit('playerlist', socket.player.game.getCustomPlayerList(p))
         })
     }
+
+
+    /**
+     * Handles the creation of a new game and sets the requesting player as admin.
+     * 
+     * @param {Socket} socket - The socket to the client
+     * @param {object} data - The data sent with the create event
+     */
 
     handleCreate(socket, data) {
         if (!socket.player) {
@@ -124,6 +173,14 @@ class GameController {
         socket.emit('gamejoin')
         socket.emit('playerinfo', socket.player.getPublicPlayerInfo())
     }
+
+
+    /**
+     * Handles the start of a game by sending every player the game details
+     * 
+     * @param {Socket} socket - The socket to the client
+     * @param {object} data - The data sent with the start event (Should be none)
+     */
 
     handleStart(socket, data) {
         if (!socket.player) {
@@ -149,6 +206,14 @@ class GameController {
         this.io.to(socket.player.game.inviteCode).emit('gamestart')
     }
 
+
+    /**
+     * Checks whether a move is valid in respect to the board constraints and previous moves
+     * 
+     * @param {object} move - Move to check with position and face
+     * @param {object} currentState - Previous move with position and faces
+     */
+
     isValidMove(move, currentState) {
         if (typeof move.position !== 'number' || typeof move.face !== 'number')
             return false
@@ -173,6 +238,14 @@ class GameController {
         return true
     }
 
+
+    /**
+     * Handles a move made by a player
+     * 
+     * @param {Socket} socket - The socket to the client
+     * @param {object} data - The data sent with the move event
+     */
+
     handleMove(socket, data) {
         if (!socket.player) {
             throw new Error('Not authenticated as player')
@@ -191,6 +264,14 @@ class GameController {
         })
     }
 
+
+    /**
+     * Counts the dices relevant to a certain bet
+     * 
+     * @param {Array} diceList - A list of dices to look for dices relevant to the bet
+     * @param {object} dice - Current bet
+     */
+
     countRelevantDices(diceList, dice) {
         let count = 0
 
@@ -203,6 +284,13 @@ class GameController {
         return count
     }
 
+
+    /**
+     * Determines the dices count for a bet from the field
+     * 
+     * @param {number} position - The field of which the bet count should be determined
+     */
+
     getTargetCount(position) {
         position += 1
 
@@ -214,6 +302,14 @@ class GameController {
             return position - (position - modulo) / 3
         }
     }
+
+
+    /**
+     * Handles the refutal of a bet by a player
+     * 
+     * @param {Socket} socket - The socket to the client
+     * @param {object} data - The data sent with the event (Should be none)
+     */
 
     handleRefute(socket, data) {
         if (!socket.player) {
@@ -251,6 +347,14 @@ class GameController {
             })
         })
     }
+
+
+    /**
+     * Handles the preparation of the next round of a game
+     * 
+     * @param {Socket} socket - The socket to the client
+     * @param {object} data - The data sent with the event (Should be none)
+     */
 
     handleNextRound(socket, data) {
         if (!socket.player) {
