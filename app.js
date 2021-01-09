@@ -9,7 +9,7 @@ const promisify = require('util').promisify
 const config = require('dotenv').config()
 
 if (config.error) {
-    throw new Error(error)
+    throw new Error(config.error)
 }
 
 const GameManager = require('./models/GameManager.js')
