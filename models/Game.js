@@ -137,6 +137,9 @@ class Game {
         if (this.players.length == 0) {
             this.gameManager.removeGame(this)
         }
+
+        if (this.admin == player)
+            this.admin = this.players[0]
     }
 
     getPreviousActivePlayerIndex() {
@@ -202,14 +205,14 @@ class Game {
             this.currentTurnIndex = previousPlayerIndex
         }
 
-        const activePlayerCount = this.players.filter(p => p.diceCount() > 0).length
+        /*const activePlayerCount = this.players.filter(p => p.diceCount() > 0).length
 
         if (activePlayerCount == 1)
             this.winnerIndex = this.players.findIndex(p => p.diceCount() > 0)
         else
             this.winnerIndex = undefined
 
-        return this.winnerIndex
+        return this.winnerIndex*/
     }
 
     prepare(newGame) {
@@ -221,6 +224,20 @@ class Game {
         this.dice = {
             face: 0,
             position: 0
+        }
+    }
+
+    isWinnerFound() {
+        const activePlayerCount = this.players.filter(p => p.diceCount() > 0).length
+
+        if (activePlayerCount == 1) {
+            this.winnerIndex = this.players.findIndex(p => p.diceCount() > 0)
+            this.state = 'end'
+            return true
+        }
+        else {
+            this.winnerIndex = undefined
+            return false
         }
     }
 }

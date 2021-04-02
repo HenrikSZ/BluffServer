@@ -80,11 +80,15 @@ class GameController {
         socket.join(socket.player.game.inviteCode)
 
         socket.emit('gameinfo', socket.player.game.getPublicGameInfo())
-        socket.emit('playerlist', socket.player.game.getCustomPlayerList(socket.player))
+
+        socket.player.game.players.forEach(p => {
+            if (p.socket)
+                p.socket.emit('playerlist', socket.player.game.getCustomPlayerList(p))
+        })
 
         switch (socket.player.game.state) {
             case 'lobby':
-                socket.emit('gamejoin')
+                socket.emit('lobbyjoin')
                 break
 
             case 'refute':
@@ -133,7 +137,7 @@ class GameController {
         this.io.to(game.inviteCode).emit('playerlist', game.getPublicPlayerList())
         
         socket.emit('gameinfo', game.getPublicGameInfo())
-        socket.emit('gamejoin')
+        socket.emit('lobbyjoin')
         socket.emit('playerinfo', socket.player.getPublicPlayerInfo())
     }
 
@@ -189,7 +193,7 @@ class GameController {
                 p.socket.emit('playerlist', socket.player.game.getCustomPlayerList(p))
         })
         socket.emit('gameinfo', game.getPublicGameInfo())
-        socket.emit('gamejoin')
+        socket.emit('lobbyjoin')
         socket.emit('playerinfo', socket.player.getPublicPlayerInfo())
     }
 
@@ -351,13 +355,13 @@ class GameController {
             dice: socket.player.game.dice
         }
 
-        const winnerIndex = socket.player.game.refute(comparisonData)
+        socket.player.game.refute(comparisonData)
 
-        if (typeof winnerIndex === 'number') {
+        /*if (typeof winnerIndex === 'number') {
             socket.player.game.state = 'end'
         } else {
             socket.player.game.state = 'refute'
-        }
+        }*/
 
         socket.player.game.players.forEach(p => {
             const diceList = socket.player.game.getCustomDiceList(p)
@@ -366,7 +370,7 @@ class GameController {
                 p.socket.emit('refute', {
                     dices: diceList,
                     comparisonData: comparisonData,
-                    winnerIndex: socket.player.game.getCustomIndex(p, winnerIndex)
+                    //winnerIndex: socket.player.game.getCustomIndex(p, winnerIndex)
                 })
         })
     }
@@ -390,16 +394,46 @@ class GameController {
             throw new Error('Not at refute state')
         }
 
-        socket.player.game.prepare(false)
-    
+        if (socket.player.game.isWinnerFound()) {
+            this.handleWinnerFound(socket, data)
+        } else {
+                socket.player.game.prepare(false)
+
+                socket.player.game.players.forEach(p => {
+                    if (p.socket) {
+                        p.socket.emit('playerlist', socket.player.game.getCustomPlayerList(p))
+                        p.socket.emit('nextturn', socket.player.game.getCustomGameStateFor(p))
+                    }
+                })
+
+                this.io.to(socket.player.game.inviteCode).emit('gamestart')
+        }
+    }
+
+    handleNextGame(socket, data) {
+        if (!socket.player) {
+            throw new Error('Not authenticated as Player')
+        }
+        if (socket.player != socket.player.game.admin) {
+            throw new Error('Not an admin')
+        }
+        if (socket.player.game.state !== 'end') {
+            throw new Error('Game has not ended yet')
+        }
+
         socket.player.game.players.forEach(p => {
-            if (p.socket) {
-                p.socket.emit('playerlist', socket.player.game.getCustomPlayerList(p))
-                p.socket.emit('nextturn', socket.player.game.getCustomGameStateFor(p))
-            }
+            p.socket.emit('lobbyjoin')
         })
 
-        this.io.to(socket.player.game.inviteCode).emit('gamestart')
+        socket.player.game.state = 'lobby'
+    }
+
+    handleWinnerFound(socket, data) {
+        socket.player.game.players.forEach((p, i) => {
+            if (p.socket) {
+                p.socket.emit('winnerfound', { winnerIndex: socket.player.game.getCustomIndex(p, socket.player.game.winnerIndex) })
+            }
+        })
     }
 
     handleDisconnect(socket, data) {

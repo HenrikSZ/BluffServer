@@ -39,17 +39,13 @@ class Button {
     }
 
     onClick(x, y) {
-        if (this.isVisible && x >= this.x && x < this.x + 200 && y >= this.y && y < this.y + 30) {
-            return true
-        }
-
-        return false
+        return this.isVisible && x >= this.x && x < this.x + 200 && y >= this.y && y < this.y + 30
     }
 }
 
 class NextRoundButton extends Button {
     constructor(x, y, board, ctx) {
-        super(x, y, 'Nächste Runde', ctx)
+        super(x, y, 'Weiter', ctx)
 
         this.board = board
     }
@@ -65,7 +61,11 @@ class NextRoundButton extends Button {
     }
 
     onRefute(data) {
-        this.isVisible = data.ownTurn && !data.winnerFound
+        this.isVisible = data.ownTurn
+    }
+
+    onWinnerFound(data) {
+        this.isVisible = false
     }
 
     onGameStart() {
@@ -93,6 +93,10 @@ class LieButton extends Button {
         this.isVisible = false
     }
 
+    onWinnerFound(data) {
+        this.isVisible = false
+    }
+
     onGameStart() {
         this.isVisible = false
     }
@@ -104,14 +108,14 @@ class LieButton extends Button {
 
 class NextGameButton extends Button {
     constructor(x, y, board, ctx) {
-        super(x, y, 'Nächste Runde', ctx)
+        super(x, y, 'Nächstes Spiel', ctx)
 
         this.board = board
     }
 
     onClick(x, y) {
         if (super.onClick(x, y)) {
-            this.board.gameCanvas.startGame()
+            this.board.gameCanvas.nextGame()
             return true
         }
 
@@ -127,11 +131,11 @@ class NextGameButton extends Button {
     }
 
     onNextTurn(data) {
-        this.isVisible = data.ownTurn && data.dice.face > 0
+        this.isVisible = false
     }
 
-    onRefute(data) {
-        this.isVisible = data.isAdmin && data.winnerFound
+    onWinnerFound(data) {
+        this.isVisible = data.isAdmin
     }
 }
 
@@ -144,7 +148,6 @@ class ComparisonGraphic {
 
         this.board = board
         this.nextRoundButton = new NextRoundButton(x - 200 / 2, y + 40, board, ctx)
-        this.nextGameButton = new NextGameButton(x - 200 / 2, y + 40, board, ctx)
         this.isVisible = false
     }
 
@@ -182,7 +185,6 @@ class ComparisonGraphic {
             ctx.drawImage(this.dicesImage, 200 * this.comparisonData.dice.face, 0, 200, 200, this.x + 20 + 10 + 20, this.y - 50 / 2, 50, 50)
 
             this.nextRoundButton.draw(ctx)
-            this.nextGameButton.draw(ctx)
         }
     }
 
@@ -191,7 +193,12 @@ class ComparisonGraphic {
         this.comparisonData = data.comparisonData
 
         this.nextRoundButton.onRefute(data)
-        this.nextGameButton.onRefute(data)
+    }
+
+    onWinnerFound(data) {
+        this.isVisible = false
+
+        this.nextRoundButton.onRefute(data)
     }
 
     onGameStart() {
@@ -309,6 +316,7 @@ class Board {
 
         this.chooseBubble = new ChooseBubble(dicesImage, bubbleImage, this)
         this.lieButton = new LieButton(600 - 200 / 2, 300 - 30 / 2, this, ctx)
+        this.nextGameButton = new NextGameButton(600 - 200 / 2, 300 + 40, this, ctx)
         this.comparisonGraphic = new ComparisonGraphic(600, 300, dicesImage, this, ctx)
         this.selectedField = -1
         this.gameCanvas = gameCanvas
@@ -325,6 +333,7 @@ class Board {
 
         this.fields.forEach(f => f.draw(ctx))
         this.lieButton.draw(ctx)
+        this.nextGameButton.draw(ctx)
         this.comparisonGraphic.draw(ctx)
         this.chooseBubble.draw(ctx)
     }
@@ -382,7 +391,14 @@ class Board {
         this.comparisonGraphic.onRefute(data)
     }
 
+    onWinnerFound(data) {
+        this.nextGameButton.onWinnerFound(data)
+        this.lieButton.onWinnerFound(data)
+        this.comparisonGraphic.onWinnerFound(data)
+    }
+
     onGameStart() {
+        this.nextGameButton.onGameStart()
         this.lieButton.onGameStart()
         this.comparisonGraphic.onGameStart()
     }
@@ -401,7 +417,9 @@ class Board {
     onClick(x, y) {
         let ret = false
 
-        if (this.comparisonGraphic.onClick(x, y)) {
+        if (this.nextGameButton.onClick(x, y)) {
+            ret = true
+        } else if (this.comparisonGraphic.onClick(x, y)) {
             ret = true
         } else if (this.chooseBubble.onClick(x, y)) {
             ret = true
@@ -647,16 +665,11 @@ class Player {
     }
 
     drawConnected(ctx) {
-        console.log(this.x + (this.x - this.nameX) + 10)
-        console.log(this.y - 45)
-
         if (this.playerData.isConnected) {
             ctx.fillStyle = 'green'
         } else {
             ctx.fillStyle = '#bfaaaa'
         }
-
-        console.log(this.playerData.isConnected)
 
         ctx.beginPath()
         ctx.ellipse(this.x + (this.x - this.nameX) + 10, this.y - 46, 8, 8, 0, 0, 2 * Math.PI)
@@ -745,10 +758,6 @@ class GameCanvas {
     onRefute(data) {
         data.ownTurn = this.thisPlayer.playerData.atTurn
         data.isAdmin = this.thisPlayer.playerData.isAdmin
-        if (typeof data.winnerIndex === 'number') {
-            data.winnerFound = true
-            this.players[data.winnerIndex].playerData.isWinner = true
-        }
         this.currentTurnIndex = null
 
         this.board.onRefute(data)
@@ -757,6 +766,12 @@ class GameCanvas {
             p.playerData.dices = data.dices[i]
             p.comparisonData = data.comparisonData
         })
+    }
+
+    onWinnerFound(data) {
+        this.players[data.winnerIndex].playerData.isWinner = true
+        data.isAdmin = this.thisPlayer.playerData.isAdmin
+        this.board.onWinnerFound(data)
     }
 
     onGameStart() {
@@ -774,8 +789,8 @@ class GameCanvas {
         this.board.onNextTurn(data)
     }
 
-    startGame() {
-        this.socket.emit('start')
+    nextGame() {
+        this.socket.emit('nextgame')
     }
 
     refute() {
@@ -856,7 +871,7 @@ function game() {
                 this.gameCanvas.onGameStart()
                 this.gameCanvas.draw()
             })
-            this.socket.on('gamejoin', data => {
+            this.socket.on('lobbyjoin', data => {
                 console.log('game.join')
 
                 this.gameState = 'lobby'
@@ -884,7 +899,7 @@ function game() {
                 this.player = data
             })
             this.socket.on('nextturn', data => {
-                console.log(`game.gamestate`)
+                console.log(`game.nextturn`)
 
                 this.gameState = 'ingame'
                 this.gameCanvas.onNextTurn(data)
@@ -895,6 +910,12 @@ function game() {
 
                 this.gameState = 'ingame'
                 this.gameCanvas.onRefute(data)
+                this.gameCanvas.draw()
+            })
+            this.socket.on('winnerfound', data => {
+                console.log('game.winnerfound')
+
+                this.gameCanvas.onWinnerFound(data)
                 this.gameCanvas.draw()
             })
 
