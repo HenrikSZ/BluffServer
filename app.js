@@ -6,10 +6,28 @@ const path = require('path')
 const mysql = require('mysql')
 const promisify = require('util').promisify
 
+const winston = require('winston')
+
 const config = require('dotenv').config()
 
 if (config.error) {
     throw new Error(config.error)
+}
+
+const logger = winston.createLogger({
+    level: 'info',
+    format: winston.format.json(),
+    defaultMeta: { service: 'user-service' },
+    transports: [
+        new winston.transports.File({ filename: 'error.log', level: 'error' }),
+        new winston.transports.File({ filename: 'combined.log' })
+    ],
+})
+
+if (config.parsed.DEBUGGING) {
+    logger.add(new winston.transports.Console({
+        format: winston.format.simple(),
+    }))
 }
 
 const GameManager = require('./models/GameManager.js')
@@ -76,11 +94,9 @@ function setupRoutes(app, gameController) {
 function setupSocketIO(io, gameController) {
     io.on('connection', socket => {
         socket.on('create', data => {
-            console.log('game.create')
             callControllerFunction(gameController.handleCreate.bind(gameController), socket, data)
         })
         socket.on('start', data => {
-            console.log('game.start')
             callControllerFunction(gameController.handleStart.bind(gameController), socket, data)
         })
 
@@ -94,31 +110,24 @@ function setupSocketIO(io, gameController) {
             }
         })
         socket.on('join', data => {
-            console.log('game.join')
             callControllerFunction(gameController.handleJoin.bind(gameController), socket, data)
         })
         socket.on('leave', data => {
-            console.log('game.leave')
             callControllerFunction(gameController.handleLeave.bind(gameController), socket, data)
         })
         socket.on('move', data => {
-            console.log('game.move')
             callControllerFunction(gameController.handleMove.bind(gameController), socket, data)
         })
         socket.on('refute', data => {
-            console.log('game.refute')
             callControllerFunction(gameController.handleRefute.bind(gameController), socket, data)
         })
         socket.on('nextround', data => {
-            console.log('game.nextround')
             callControllerFunction(gameController.handleNextRound.bind(gameController), socket, data)
         })
         socket.on('nextgame', data => {
-            console.log('game.nextgame')
             callControllerFunction(gameController.handleNextGame.bind(gameController), socket, data)
         })
         socket.on('disconnect', data => {
-            console.log('game.disconnect')
             callControllerFunction(gameController.handleDisconnect.bind(gameController), socket, data)
         })
     })
@@ -132,12 +141,12 @@ PlayerManager.createAndLoadPlayers(asyncMysql)
     const io = socketio(server)
 
     const gameManager = GameManager.create()
-    const gameController = new GameController(io, asyncMysql, gameManager, playerManager)
+    const gameController = new GameController(io, asyncMysql, gameManager, playerManager, logger)
 
     setupRoutes(app, gameController)
     setupSocketIO(io, gameController)
     
     server.listen(port, () => {
-        console.log(`sys.list.port[${port}]`)
+        logger.info(`sys.listen.port[${port}]`)
     })
 })

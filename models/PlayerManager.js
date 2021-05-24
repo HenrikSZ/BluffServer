@@ -30,7 +30,7 @@ class PlayerManager {
         })
     }
 
-    removeDisconnectedPlayer(player) {
+    removeFromDisconnectedPlayers(player) {
         this.disconnectedPlayers = this.disconnectedPlayers.filter(p => p.player != player)
     }
 
@@ -44,7 +44,7 @@ class PlayerManager {
                 cleanedGames.push(dp.player.game)
                 dp.player.leaveGame()
                 
-                this.removeDisconnectedPlayer(dp.player)
+                this.removeFromDisconnectedPlayers(dp.player)
             }
         })
 

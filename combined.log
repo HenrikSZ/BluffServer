@@ -1,0 +1,14 @@
+{"message":"sys.listen.port[8081]","level":"info","service":"user-service"}
+{"message":"game.player.auth[Syrbor]","level":"info","service":"user-service"}
+{"message":"game.player.creategame[Syrbor]","level":"info","service":"user-service"}
+{"message":"game.game.create[91904cbd]","level":"info","service":"user-service"}
+{"message":"game.player.join[Syrbor; 91904cbd]","level":"info","service":"user-service"}
+{"message":"game.player.auth[Syrbor2]","level":"info","service":"user-service"}
+{"message":"game.player.join[Syrbor2; 91904cbd]","level":"info","service":"user-service"}
+{"message":"game.game.start[[object Object]]","level":"info","service":"user-service"}
+{"message":"game.player.move[Syrbor]","level":"info","service":"user-service"}
+{"message":"game.player.move[Syrbor2]","level":"info","service":"user-service"}
+{"message":"game.player.refute[Syrbor]","level":"info","service":"user-service"}
+{"message":"game.game.nextround[91904cbd]","level":"info","service":"user-service"}
+{"message":"game.game.winnerfound[91904cbd; [object Object]]","level":"info","service":"user-service"}
+{"message":"game.game.nextgame[91904cbd]","level":"info","service":"user-service"}

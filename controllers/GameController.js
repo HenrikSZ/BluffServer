@@ -14,11 +14,13 @@ class GameController {
      * @param {GameManager} gameManager - The GameManager providing access to all games
      * @param {PlayerManager} playerManager - The PlayerManager providing access to all players
      */
-    constructor(io, asyncMysql, gameManager, playerManager) {
+    constructor(io, asyncMysql, gameManager, playerManager, logger) {
         this.io = io
         this.asyncMysql = asyncMysql
         this.gameManager = gameManager
         this.playerManager = playerManager
+
+        this.logger = logger
 
         this.cleanInterval = 1000
 
@@ -58,7 +60,6 @@ class GameController {
             if (!socket.player) {
                 throw new Error('Invalid token')
             }
-
         } else if (data.username) {
             socket.player = await Player.createNew(data.username, this.asyncMysql)
             this.playerManager.addPlayer(socket.player)
@@ -66,8 +67,10 @@ class GameController {
             throw new Error('Invalid field combination for auth')
         }
 
+        this.logger.info(`game.player.auth[${socket.player.username}]`)
+
         socket.player.isConnected = true
-        this.playerManager.removeDisconnectedPlayer(socket.player)
+        this.playerManager.removeFromDisconnectedPlayers(socket.player)
         socket.player.socket = socket
         socket.emit('playerinfo', socket.player.getPublicPlayerInfo())
         if (socket.player.game) {
@@ -83,6 +86,8 @@ class GameController {
      */
 
     rejoinPlayer(socket) {
+        this.logger.info(`game.player.rejoin[${socket.player.username}]`)
+
         socket.join(socket.player.game.inviteCode)
 
         socket.emit('gameinfo', socket.player.game.getPublicGameInfo())
@@ -121,21 +126,26 @@ class GameController {
      * @param {object} data - The data sent with the join event
      */
 
-    handleJoin(socket, data) {
+    handleJoin(socket, data, game) {        
         if (!socket.player) {
             throw new Error('Not authenticated as Player')
         }
-        if (!data || !data.inviteCode) {
-            throw new Error('Ill formatted')
+
+        if (!game) {
+            game = this.gameManager.getFromInviteCode(data.inviteCode)
+
+            if (!data || !data.inviteCode) {
+                throw new Error('Ill formatted')
+            }
         }
-        
-        let game = this.gameManager.getFromInviteCode(data.inviteCode)
         if (!game) {
             throw new Error('Game not found')
         }
         if (game.isRunning()) {
             throw new Error('Game already running')
         }
+
+        this.logger.info(`game.player.join[${socket.player.username}; ${game.inviteCode}]`)
 
         socket.player.joinGame(game)
 
@@ -163,6 +173,8 @@ class GameController {
             throw new Error('Player not in game')
         }
 
+        this.logger.info(`game.player.leave[${socket.player.username}]`)
+
         const game = socket.player.game
         socket.player.leaveGame()
 
@@ -187,20 +199,15 @@ class GameController {
             throw new Error('Not authenticated as player')
         }
 
+        this.logger.info(`game.player.creategame[${socket.player.username}]`)
+
         const game = Game.create()
+        this.logger.info(`game.game.create[${game.inviteCode}]`)
         this.gameManager.addGame(game)
 
         game.admin = socket.player
-        socket.player.joinGame(game)
-
-        socket.join(game.inviteCode)
-        socket.player.game.players.forEach(p => {
-            if (p.socket)
-                p.socket.emit('playerlist', socket.player.game.getCustomPlayerList(p))
-        })
-        socket.emit('gameinfo', game.getPublicGameInfo())
-        socket.emit('lobbyjoin')
-        socket.emit('playerinfo', socket.player.getPublicPlayerInfo())
+        
+        this.handleJoin(socket, data, game)
     }
 
 
@@ -224,6 +231,8 @@ class GameController {
         if (socket.player != socket.player.game.admin) {
             throw new Error('Player not admin of this game')
         }
+
+        this.logger.info(`game.game.start[${socket.player.game.inviteCode}]`)
 
         // TODO
         socket.player.game.prepare(true)
@@ -287,6 +296,8 @@ class GameController {
         if (!this.isValidMove(data, socket.player.game.dice))  {
             throw new Error('Invalid move')
         }
+
+        this.logger.info(`game.player.move[${socket.player.username}]`)
 
         socket.player.game.dice = data
         socket.player.game.nextTurn()
@@ -352,6 +363,8 @@ class GameController {
             throw new Error('Player not at turn')
         }
 
+        this.logger.info(`game.player.refute[${socket.player.username}]`)
+
         const count = this.countRelevantDices(socket.player.game.getPublicDiceList(), socket.player.game.dice)
         const target = this.getTargetCount(socket.player.game.dice.position)
 
@@ -400,6 +413,8 @@ class GameController {
             throw new Error('Not at refute state')
         }
 
+        this.logger.info(`game.game.nextround[${socket.player.game.inviteCode}]`)
+
         if (socket.player.game.isWinnerFound()) {
             this.handleWinnerFound(socket, data)
         } else {
@@ -427,6 +442,8 @@ class GameController {
             throw new Error('Game has not ended yet')
         }
 
+        this.logger.info(`game.game.nextgame[${socket.player.game.inviteCode}]`)
+
         socket.player.game.players.forEach(p => {
             p.socket.emit('lobbyjoin')
         })
@@ -435,17 +452,21 @@ class GameController {
     }
 
     handleWinnerFound(socket, data) {
-        socket.player.game.players.forEach((p, i) => {
+        socket.player.game.players.forEach((p) => {
             if (p.socket) {
                 p.socket.emit('winnerfound', { winnerIndex: socket.player.game.getCustomIndex(p, socket.player.game.winnerIndex) })
             }
         })
+
+        this.logger.info(`game.game.winnerfound[${socket.player.game.inviteCode}; ${socket.player.game.players[socket.player.game.winnerIndex].username}]`)
     }
 
     handleDisconnect(socket, data) {
         if (!socket.player) {
             return
         }
+
+        this.logger.info(`game.player.disconnect[${socket.player.username}]`)
 
         socket.player.isConnected = false
 
