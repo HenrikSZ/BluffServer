@@ -29,6 +29,12 @@ class GameController {
         let games = this.playerManager.cleanDisconnectedPlayers(this.cleanInterval)
 
         games.forEach(g => {
+            if (g.isWinnerFound()) {
+                this.handleWinnerFound(g.players[0].socket)
+            }
+        })
+
+        games.forEach(g => {
             g.players.forEach(p => {
                 if (p.socket)
                     p.socket.emit('playerlist', g.getCustomPlayerList(p))
@@ -446,9 +452,6 @@ class GameController {
         if (socket.player.game) {
             const game = socket.player.game
 
-            if (game.state === 'lobby') {
-                socket.player.leaveGame()
-            }
             this.playerManager.addDisconnectedPlayer(socket.player)
 
             game.players.forEach(p => {
