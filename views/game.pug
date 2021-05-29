@@ -10,7 +10,7 @@ html
         title Play Bluff online
     body
         div(id='wrapper', class="p-4 text-center")
-            div(x-data="game()", x-init=`username = '${player ? player.username : ''}'; rejoin = ${player ? !!player.game : false}; connectSocketIO()`)
+            div(x-data="game()", x-init=`rejoin = ${player ? !!player.game : false}; connectSocketIO()`)
                 img(class="d-none" src="/images/dices.png" x-ref="dicesImage")
                 img(class="d-none" src="/images/bubble.png" x-ref="bubbleImage")
                 img(class="d-none" src="/images/cross.png" x-ref="crossImage")
@@ -22,7 +22,7 @@ html
                 div(x-show="gameState === 'set-username'")
                     h4 Set Nickname
                     div
-                        input(class="m-2", type="text", x-model="username")
+                        input(class="m-2", type="text", x-model="player.username")
                     div(class="row d-flex justify-content-center")
                         button(class="btn btn-primary m-2 col-md-2", @click="gameState = 'create-game'; authSocketIO()") Create
                         button(class="btn btn-primary m-2 col-md-2", @click="gameState = 'join-game'; authSocketIO()") Join

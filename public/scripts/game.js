@@ -857,7 +857,10 @@ function game() {
     return {
         gameState: '',
         game: {},
-        player: {},
+        player: {
+            username: getCookieValue('username'),
+            token: getCookieValue('token')
+        },
         authenticated: false,
         rejoin: false,
         players: [],
@@ -897,6 +900,8 @@ function game() {
             this.socket.on('playerinfo', data => {
                 console.log(`game.playerinfo`)
                 this.player = data
+                setCookieValue('token', data.token, 31536000)
+                setCookieValue('username', data.username, 31536000)
             })
             this.socket.on('nextturn', data => {
                 console.log(`game.nextturn`)
@@ -936,17 +941,7 @@ function game() {
                 }
             })
 
-            const token = getCookieValue('token')
-            if (token) {
-                this.socket.emit('auth', { token: token })
-            } else {
-                this.socket.emit('auth', { username: username })
-                this.socket.on('playerinfo', data => {
-                    this.socket.off('playerinfo')
-                    this.player = data
-                    setCookieValue('token', data.token, 31536000000)
-                })
-            }
+            this.socket.emit('auth', { token: this.player.token, username: this.player.username })
         },
         createGame() {
             while (!this.authenticated) continue

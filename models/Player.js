@@ -1,48 +1,16 @@
 const crypto = require('crypto')
 
 class Player {
-    async updateUsername(username, asyncMysql) {
-        //TODO fix 
-        await asyncMysql.query(`UPDATE players SET username = ${asyncMysql.escape(username)} WHERE id = ${asyncMysql.escape(player.id)}`)
+    constructor(username) {
+        this.token = crypto.randomBytes(16).toString('hex')
         this.username = username
-
-        return player
-    }
-
-    static async createNew(username, asyncMysql) {
-        const player = new Player()
-        let result
-
-        player.token = crypto.randomBytes(16).toString('hex')
-        player.username = username
         if (!username) {
             throw new Error('Username must be included in query!')
         }
         if (username.length > 64 || username.length == 0) {
             throw new Error('Username must be between 1 and 64 characters long!')
         }
-        
-        // TODO think of error handling
-        result = await asyncMysql.query(`INSERT INTO players (username, token) VALUES (${asyncMysql.escape(username)}, ${asyncMysql.escape(player.token)})`)
-        player.id = result.insertId
 
-        return player
-    }
-
-    static createFromDb(playerData) {
-        const player = new Player()
-
-        player.username = playerData.username
-        player.id = playerData.id
-        player.token = playerData.token
-
-        return player
-    }
-
-    constructor() {
-        this.username = ''
-        this.id = ''
-        this.token = ''
         this.dices = []
         this.dicesTaken = 0
     }

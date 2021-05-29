@@ -10,13 +10,11 @@ class GameController {
     /**
      * 
      * @param {Server} io - The socket io Object to emit events
-     * @param {object} asyncMysql - An object containg a promisified query function and an escape function
      * @param {GameManager} gameManager - The GameManager providing access to all games
      * @param {PlayerManager} playerManager - The PlayerManager providing access to all players
      */
-    constructor(io, asyncMysql, gameManager, playerManager, logger) {
+    constructor(io, gameManager, playerManager, logger) {
         this.io = io
-        this.asyncMysql = asyncMysql
         this.gameManager = gameManager
         this.playerManager = playerManager
 
@@ -50,21 +48,18 @@ class GameController {
      * @param {Socket} socket - The socket to the client
      * @param {object} data - The data sent with the auth event
      */
-    async handleAuth(socket, data) {
-        if (!data) {
+    handleAuth(socket, data) {
+        if (!data || !data.username) {
             throw new Error('Missing data for auth')
         }
 
         if (data.token) {
             socket.player = this.playerManager.getFromToken(data.token)
-            if (!socket.player) {
-                throw new Error('Invalid token')
-            }
-        } else if (data.username) {
-            socket.player = await Player.createNew(data.username, this.asyncMysql)
+        }
+
+        if (!socket.player) {
+            socket.player = new Player(data.username)
             this.playerManager.addPlayer(socket.player)
-        } else {
-            throw new Error('Invalid field combination for auth')
         }
 
         this.logger.info(`game.player.auth[${socket.player.username}]`)
@@ -73,6 +68,7 @@ class GameController {
         this.playerManager.removeFromDisconnectedPlayers(socket.player)
         socket.player.socket = socket
         socket.emit('playerinfo', socket.player.getPublicPlayerInfo())
+        
         if (socket.player.game) {
             this.rejoinPlayer(socket)
         }

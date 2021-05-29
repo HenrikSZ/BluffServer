@@ -3,7 +3,6 @@ const socketio = require('socket.io')
 const http = require('http')
 const cookieParser = require('cookie-parser')
 const path = require('path')
-const mysql = require('mysql')
 const promisify = require('util').promisify
 
 const winston = require('winston')
@@ -31,24 +30,9 @@ if (config.parsed.DEBUGGING) {
 }
 
 const GameManager = require('./models/GameManager.js')
-const PlayerManager = require('./models/PlayerManager.js')
 
 const GameController = require('./controllers/GameController.js')
-
-const dbConnection = mysql.createConnection({
-    host: config.parsed.DB_HOST,
-    user: config.parsed.DB_USER,
-    password: config.parsed.DB_PASS,
-    database: config.parsed.DB_NAME
-})
-
-const asyncQuery = promisify(dbConnection.query).bind(dbConnection)
-const escape = dbConnection.escape.bind(dbConnection)
-
-const asyncMysql = {
-    query: asyncQuery,
-    escape: escape
- }
+const PlayerManager = require('./models/PlayerManager.js')
 
 const port = config.parsed.PORT
 
@@ -133,20 +117,17 @@ function setupSocketIO(io, gameController) {
     })
 }
 
-PlayerManager.createAndLoadPlayers(asyncMysql)
-.then((playerManager) => {
+const app = express()
+const server = http.createServer(app)
+const io = socketio(server)
 
-    const app = express()
-    const server = http.createServer(app)
-    const io = socketio(server)
+const gameManager = new GameManager()
+const playerManager = new PlayerManager()
+const gameController = new GameController(io, gameManager, playerManager, logger)
 
-    const gameManager = GameManager.create()
-    const gameController = new GameController(io, asyncMysql, gameManager, playerManager, logger)
+setupRoutes(app, gameController)
+setupSocketIO(io, gameController)
 
-    setupRoutes(app, gameController)
-    setupSocketIO(io, gameController)
-    
-    server.listen(port, () => {
-        logger.info(`sys.listen.port[${port}]`)
-    })
+server.listen(port, () => {
+    logger.info(`sys.listen.port[${port}]`)
 })

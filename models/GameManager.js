@@ -1,8 +1,4 @@
 class GameManager {
-    static create() {
-        return new GameManager()
-    }
-
     constructor() {
         this.games = {}
     }
