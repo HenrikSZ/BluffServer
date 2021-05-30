@@ -8,6 +8,10 @@ class PlayerManager {
         this.players[player.token] = player
     }
 
+    removePlayer(player) {
+        this.players[player.token] = null
+    }
+
     addDisconnectedPlayer(player) {
         this.disconnectedPlayers.push({
             timeout: 15000,

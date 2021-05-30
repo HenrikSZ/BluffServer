@@ -475,9 +475,9 @@ class GameController {
                 if (p.socket)
                     p.socket.emit('playerlist', game.getCustomPlayerList(p))
             })
+        } else {
+            this.playerManager.removePlayer(socket.player)
         }
-
-        socket.player.socket = null
     }
 }
 

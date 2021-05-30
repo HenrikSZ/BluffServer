@@ -862,8 +862,16 @@ function game() {
             token: getCookieValue('token')
         },
         authenticated: false,
-        rejoin: false,
         players: [],
+        init(rejoin) {
+            if (rejoin) {
+                console.log('game.rejoin')
+                this.connectSocketIO()
+                this.authSocketIO()
+            } else {
+                this.gameState = 'set-username'
+            }
+        },
         connectSocketIO() {
             this.socket = io()
 
@@ -923,13 +931,6 @@ function game() {
                 this.gameCanvas.onWinnerFound(data)
                 this.gameCanvas.draw()
             })
-
-            if (this.rejoin) {
-                console.log('game.rejoin')
-                this.authSocketIO()
-            } else {
-                this.gameState = 'set-username'
-            }
         },
         authSocketIO() {
             this.socket.on('auth-response', data => {
@@ -940,6 +941,9 @@ function game() {
                     console.log(data.error)
                 }
             })
+
+            console.log(this.player.username)
+            console.log(getCookieValue('username'))
 
             this.socket.emit('auth', { token: this.player.token, username: this.player.username })
         },
@@ -956,6 +960,7 @@ function game() {
         leaveGame() {
             if (this.game) {
                 this.socket.emit('leave')
+                this.socket.disconnect()
                 this.gameState = 'set-username'
             }
         },

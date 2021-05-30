@@ -99,3 +99,133 @@
 {"message":"game.player.move[Syrbor]","level":"info","service":"user-service"}
 {"message":"game.player.refute[Syrbor]","level":"info","service":"user-service"}
 {"message":"game.player.refute[Syrbor]","level":"info","service":"user-service"}
+{"message":"sys.listen.port[8081]","level":"info","service":"user-service"}
+{"message":"game.player.auth[yrbor]","level":"info","service":"user-service"}
+{"message":"game.player.creategame[yrbor]","level":"info","service":"user-service"}
+{"message":"game.game.create[bfc624de]","level":"info","service":"user-service"}
+{"message":"game.player.join[yrbor; bfc624de]","level":"info","service":"user-service"}
+{"message":"game.player.leave[yrbor]","level":"info","service":"user-service"}
+{"message":"sys.listen.port[8081]","level":"info","service":"user-service"}
+{"message":"game.player.auth[yrbor]","level":"info","service":"user-service"}
+{"message":"game.player.creategame[yrbor]","level":"info","service":"user-service"}
+{"message":"game.game.create[03485ad2]","level":"info","service":"user-service"}
+{"message":"game.player.join[yrbor; 03485ad2]","level":"info","service":"user-service"}
+{"message":"game.player.leave[yrbor]","level":"info","service":"user-service"}
+{"message":"game.player.disconnect[yrbor]","level":"info","service":"user-service"}
+{"message":"game.player.auth[yrbor]","level":"info","service":"user-service"}
+{"message":"sys.listen.port[8081]","level":"info","service":"user-service"}
+{"message":"game.player.auth[Syrbor]","level":"info","service":"user-service"}
+{"message":"game.player.creategame[Syrbor]","level":"info","service":"user-service"}
+{"message":"game.game.create[d04d5ee7]","level":"info","service":"user-service"}
+{"message":"game.player.join[Syrbor; d04d5ee7]","level":"info","service":"user-service"}
+{"message":"game.player.leave[Syrbor]","level":"info","service":"user-service"}
+{"message":"game.player.disconnect[Syrbor]","level":"info","service":"user-service"}
+{"message":"game.player.auth[Syrbor]","level":"info","service":"user-service"}
+{"message":"sys.listen.port[8081]","level":"info","service":"user-service"}
+{"message":"game.player.auth[Syrbor]","level":"info","service":"user-service"}
+{"message":"sys.listen.port[8081]","level":"info","service":"user-service"}
+{"message":"game.player.auth[Tyrbor]","level":"info","service":"user-service"}
+{"message":"game.player.creategame[Tyrbor]","level":"info","service":"user-service"}
+{"message":"game.game.create[1b3cf748]","level":"info","service":"user-service"}
+{"message":"game.player.join[Tyrbor; 1b3cf748]","level":"info","service":"user-service"}
+{"message":"game.player.leave[Tyrbor]","level":"info","service":"user-service"}
+{"message":"game.player.disconnect[Tyrbor]","level":"info","service":"user-service"}
+{"message":"game.player.auth[Tyrbor]","level":"info","service":"user-service"}
+{"message":"game.player.creategame[Tyrbor]","level":"info","service":"user-service"}
+{"message":"game.game.create[a03d6fc7]","level":"info","service":"user-service"}
+{"message":"game.player.join[Tyrbor; a03d6fc7]","level":"info","service":"user-service"}
+{"message":"game.player.leave[Tyrbor]","level":"info","service":"user-service"}
+{"message":"game.player.disconnect[Tyrbor]","level":"info","service":"user-service"}
+{"message":"game.player.auth[Tyrbor]","level":"info","service":"user-service"}
+{"message":"game.player.creategame[Tyrbor]","level":"info","service":"user-service"}
+{"message":"game.game.create[4badb575]","level":"info","service":"user-service"}
+{"message":"game.player.join[Tyrbor; 4badb575]","level":"info","service":"user-service"}
+{"message":"game.player.leave[Tyrbor]","level":"info","service":"user-service"}
+{"message":"game.player.disconnect[Tyrbor]","level":"info","service":"user-service"}
+{"message":"game.player.auth[Tyrbor]","level":"info","service":"user-service"}
+{"message":"game.player.creategame[Tyrbor]","level":"info","service":"user-service"}
+{"message":"game.game.create[3f291f32]","level":"info","service":"user-service"}
+{"message":"game.player.join[Tyrbor; 3f291f32]","level":"info","service":"user-service"}
+{"message":"game.player.leave[Tyrbor]","level":"info","service":"user-service"}
+{"message":"game.player.auth[Tyrbor]","level":"info","service":"user-service"}
+{"message":"game.player.creategame[Tyrbor]","level":"info","service":"user-service"}
+{"message":"game.game.create[2bd1dc4c]","level":"info","service":"user-service"}
+{"message":"game.player.join[Tyrbor; 2bd1dc4c]","level":"info","service":"user-service"}
+{"message":"sys.listen.port[8081]","level":"info","service":"user-service"}
+{"message":"game.player.auth[Tyrbor]","level":"info","service":"user-service"}
+{"message":"game.player.creategame[Tyrbor]","level":"info","service":"user-service"}
+{"message":"game.game.create[b66c66e5]","level":"info","service":"user-service"}
+{"message":"game.player.join[Tyrbor; b66c66e5]","level":"info","service":"user-service"}
+{"message":"game.player.leave[Tyrbor]","level":"info","service":"user-service"}
+{"message":"game.player.auth[Tyrbor]","level":"info","service":"user-service"}
+{"message":"game.player.creategame[Tyrbor]","level":"info","service":"user-service"}
+{"message":"game.game.create[d0f8aa2c]","level":"info","service":"user-service"}
+{"message":"game.player.join[Tyrbor; d0f8aa2c]","level":"info","service":"user-service"}
+{"message":"game.player.leave[Tyrbor]","level":"info","service":"user-service"}
+{"message":"game.player.disconnect[Tyrbor]","level":"info","service":"user-service"}
+{"message":"game.player.auth[Tyrbor]","level":"info","service":"user-service"}
+{"message":"game.player.creategame[Tyrbor]","level":"info","service":"user-service"}
+{"message":"game.game.create[c12a4632]","level":"info","service":"user-service"}
+{"message":"game.player.join[Tyrbor; c12a4632]","level":"info","service":"user-service"}
+{"message":"game.player.leave[Tyrbor]","level":"info","service":"user-service"}
+{"message":"sys.listen.port[8081]","level":"info","service":"user-service"}
+{"message":"game.player.auth[Tyrbor]","level":"info","service":"user-service"}
+{"message":"game.player.creategame[Tyrbor]","level":"info","service":"user-service"}
+{"message":"game.game.create[1c468c04]","level":"info","service":"user-service"}
+{"message":"game.player.join[Tyrbor; 1c468c04]","level":"info","service":"user-service"}
+{"message":"game.player.leave[Tyrbor]","level":"info","service":"user-service"}
+{"message":"game.player.auth[Tyrbor]","level":"info","service":"user-service"}
+{"message":"game.player.creategame[Tyrbor]","level":"info","service":"user-service"}
+{"message":"game.game.create[6f83380e]","level":"info","service":"user-service"}
+{"message":"game.player.join[Tyrbor; 6f83380e]","level":"info","service":"user-service"}
+{"message":"game.player.leave[Tyrbor]","level":"info","service":"user-service"}
+{"message":"sys.listen.port[8081]","level":"info","service":"user-service"}
+{"message":"game.player.auth[Tyrbor]","level":"info","service":"user-service"}
+{"message":"game.player.creategame[Tyrbor]","level":"info","service":"user-service"}
+{"message":"game.game.create[df7ed4bc]","level":"info","service":"user-service"}
+{"message":"game.player.join[Tyrbor; df7ed4bc]","level":"info","service":"user-service"}
+{"message":"game.player.leave[Tyrbor]","level":"info","service":"user-service"}
+{"message":"game.player.disconnect[Tyrbor]","level":"info","service":"user-service"}
+{"message":"game.player.auth[Syrbor]","level":"info","service":"user-service"}
+{"message":"game.player.creategame[Syrbor]","level":"info","service":"user-service"}
+{"message":"game.game.create[0595f382]","level":"info","service":"user-service"}
+{"message":"game.player.join[Syrbor; 0595f382]","level":"info","service":"user-service"}
+{"message":"game.player.leave[Syrbor]","level":"info","service":"user-service"}
+{"message":"game.player.disconnect[Syrbor]","level":"info","service":"user-service"}
+{"message":"game.player.auth[Syrbor]","level":"info","service":"user-service"}
+{"message":"game.player.creategame[Syrbor]","level":"info","service":"user-service"}
+{"message":"game.game.create[91667411]","level":"info","service":"user-service"}
+{"message":"game.player.join[Syrbor; 91667411]","level":"info","service":"user-service"}
+{"message":"game.player.leave[Syrbor]","level":"info","service":"user-service"}
+{"message":"game.player.disconnect[Syrbor]","level":"info","service":"user-service"}
+{"message":"sys.listen.port[8081]","level":"info","service":"user-service"}
+{"message":"game.player.auth[Syrbor]","level":"info","service":"user-service"}
+{"message":"game.player.creategame[Syrbor]","level":"info","service":"user-service"}
+{"message":"game.game.create[4ee09bf6]","level":"info","service":"user-service"}
+{"message":"game.player.join[Syrbor; 4ee09bf6]","level":"info","service":"user-service"}
+{"message":"game.player.leave[Syrbor]","level":"info","service":"user-service"}
+{"message":"game.player.disconnect[Syrbor]","level":"info","service":"user-service"}
+{"message":"game.player.auth[Tyrbor]","level":"info","service":"user-service"}
+{"message":"game.player.creategame[Tyrbor]","level":"info","service":"user-service"}
+{"message":"game.game.create[e7c32ba4]","level":"info","service":"user-service"}
+{"message":"game.player.join[Tyrbor; e7c32ba4]","level":"info","service":"user-service"}
+{"message":"game.player.leave[Tyrbor]","level":"info","service":"user-service"}
+{"message":"game.player.disconnect[Tyrbor]","level":"info","service":"user-service"}
+{"message":"game.player.auth[Tyrbor]","level":"info","service":"user-service"}
+{"message":"game.player.creategame[Tyrbor]","level":"info","service":"user-service"}
+{"message":"game.game.create[1fe478cd]","level":"info","service":"user-service"}
+{"message":"game.player.join[Tyrbor; 1fe478cd]","level":"info","service":"user-service"}
+{"message":"game.player.leave[Tyrbor]","level":"info","service":"user-service"}
+{"message":"game.player.disconnect[Tyrbor]","level":"info","service":"user-service"}
+{"message":"game.player.auth[Syrbor]","level":"info","service":"user-service"}
+{"message":"game.player.creategame[Syrbor]","level":"info","service":"user-service"}
+{"message":"game.game.create[901078fe]","level":"info","service":"user-service"}
+{"message":"game.player.join[Syrbor; 901078fe]","level":"info","service":"user-service"}
+{"message":"game.game.start[901078fe]","level":"info","service":"user-service"}
+{"message":"game.player.disconnect[Syrbor]","level":"info","service":"user-service"}
+{"message":"game.player.auth[Syrbor]","level":"info","service":"user-service"}
+{"message":"game.player.creategame[Syrbor]","level":"info","service":"user-service"}
+{"message":"game.game.create[12467f32]","level":"info","service":"user-service"}
+{"message":"game.player.join[Syrbor; 12467f32]","level":"info","service":"user-service"}
+{"message":"game.player.leave[Syrbor]","level":"info","service":"user-service"}
+{"message":"game.player.disconnect[Syrbor]","level":"info","service":"user-service"}
