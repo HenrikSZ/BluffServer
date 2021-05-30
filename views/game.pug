@@ -58,12 +58,12 @@ html
                             h4 Players in Lobby
                             template(x-for="item in players" :key="item")
                                 div(x-text="item.username" :class="{ 'border border-primary': item.isThisPlayer }")
-                    button(class="btn btn-success m-2" x-show="player.isAdmin && players.length >= 2" @click="startGame()") Start
-                    div(class="tooltip-wrapper disabled" title="Not enough players (at least 2 required)" x-show="player.isAdmin && players.length < 2")
-                        button(class="btn btn-success m-2" disabled) Start
-                    div(class="tooltip-wrapper disabled" title="You are not the admin of the game" x-show="!player.isAdmin")
-                        button(class="btn btn-success m-2" disabled) Start
                     button(class="btn btn-danger m-2" @click="leaveGame()") Leave
+                    button(class="btn btn-success m-2" x-show="player.isAdmin && players.length >= 2" @click="startGame()") Start
+                    span(class="tooltip-wrapper disabled" title="Not enough players (at least 2 required)" x-show="player.isAdmin && players.length < 2")
+                        button(class="btn btn-success m-2" disabled) Start
+                    span(class="tooltip-wrapper disabled" title="You are not the admin of the game" x-show="!player.isAdmin")
+                        button(class="btn btn-success m-2" disabled) Start
                 div(x-show="gameState === 'ingame'")
                     div(class="m-4")
                     div(class="text-center")

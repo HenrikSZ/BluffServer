@@ -376,12 +376,6 @@ class GameController {
 
         socket.player.game.refute(comparisonData)
 
-        /*if (typeof winnerIndex === 'number') {
-            socket.player.game.state = 'end'
-        } else {
-            socket.player.game.state = 'refute'
-        }*/
-
         socket.player.game.players.forEach(p => {
             const diceList = socket.player.game.getCustomDiceList(p)
 
@@ -415,19 +409,17 @@ class GameController {
 
         this.logger.info(`game.game.nextround[${socket.player.game.inviteCode}]`)
 
+        socket.player.game.prepare(false)
+        socket.player.game.players.forEach(p => {
+            if (p.socket) {
+                p.socket.emit('playerlist', socket.player.game.getCustomPlayerList(p))
+                p.socket.emit('nextturn', socket.player.game.getCustomGameStateFor(p))
+            }
+        })
+        this.io.to(socket.player.game.inviteCode).emit('gamestart')
+        
         if (socket.player.game.isWinnerFound()) {
             this.handleWinnerFound(socket, data)
-        } else {
-                socket.player.game.prepare(false)
-
-                socket.player.game.players.forEach(p => {
-                    if (p.socket) {
-                        p.socket.emit('playerlist', socket.player.game.getCustomPlayerList(p))
-                        p.socket.emit('nextturn', socket.player.game.getCustomGameStateFor(p))
-                    }
-                })
-
-                this.io.to(socket.player.game.inviteCode).emit('gamestart')
         }
     }
 
