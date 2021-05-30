@@ -169,7 +169,7 @@ class GameController {
             throw new Error('Player not in game')
         }
 
-        this.logger.info(`game.player.leave[${socket.player.username}]`)
+        this.logger.info(`game.player.leave[${socket.player.username}, ${socket.player.game.inviteCode}]`)
 
         const game = socket.player.game
         socket.player.leaveGame()
@@ -197,7 +197,7 @@ class GameController {
 
         this.logger.info(`game.player.creategame[${socket.player.username}]`)
 
-        const game = Game.create()
+        const game = new Game(this.logger)
         this.logger.info(`game.game.create[${game.inviteCode}]`)
         this.gameManager.addGame(game)
 

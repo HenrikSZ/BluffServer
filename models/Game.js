@@ -1,13 +1,7 @@
 const crypto = require('crypto')
 
 class Game {
-    static create() {
-        const game = new Game()
-
-        return game
-    }
-
-    constructor() {
+    constructor(logger) {
         this.players = []
         this.inviteCode = crypto.randomBytes(4).toString('hex')
         this.state = 'lobby'
@@ -17,6 +11,8 @@ class Game {
             face: 0,
             position: 0
         }
+
+        this.logger = logger
     }
 
     getPublicPlayerList() {
@@ -129,6 +125,7 @@ class Game {
     addPlayer(player) {
         if (!this.players.includes(player)) {
             this.players.push(player)
+            this.logger.info(`game.game.addedplayer[${player.username}, ${this.inviteCode}]`)
         }
     }
 
@@ -136,10 +133,10 @@ class Game {
         this.players = this.players.filter(p => p != player)
         if (this.players.length == 0) {
             this.gameManager.removeGame(this)
-        }
-
-        if (this.admin == player)
+            this.logger.info(`game.game.removed[${this.inviteCode}]`)
+        } else if (this.admin == player) {
             this.admin = this.players[0]
+        }            
     }
 
     getPreviousActivePlayerIndex() {
