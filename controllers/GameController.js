@@ -477,6 +477,8 @@ class GameController {
             })
         } else {
             this.playerManager.removePlayer(socket.player)
+
+            this.logger.info(`game.player.remove[${socket.player.username}]`)
         }
     }
 }

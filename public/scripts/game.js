@@ -1,6 +1,7 @@
 function getCookieValue(cookieKey) {
-    let regex = new RegExp('^.*;?\s*' + cookieKey + 's*=\s*([^;]+).*?$', 'gi')
+    let regex = new RegExp('^.*;?\s*' + cookieKey + 's*=\s*([^;]+).*?$', 'g')
     let regexResult = regex.exec(document.cookie)
+    console.log(regexResult)
     return regexResult ? regexResult[1] : null
 }
 
@@ -942,8 +943,8 @@ function game() {
                 }
             })
 
-            console.log(this.player.username)
             console.log(getCookieValue('username'))
+            console.log(getCookieValue('token'))
 
             this.socket.emit('auth', { token: this.player.token, username: this.player.username })
         },
