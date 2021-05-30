@@ -8,6 +8,16 @@ html
             integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1",
             crossorigin="anonymous")
         title Play Bluff online
+        style.
+            .tooltip-wrapper .btn[disabled] {
+                /* don't let button block mouse events from reaching wrapper */
+                pointer-events: none;
+            }
+
+            .tooltip-wrapper.disabled {
+                /* OPTIONAL pointer-events setting above blocks cursor setting, so set it here */
+                cursor: not-allowed;
+            }
     body
         div(id='wrapper', class="p-4 text-center")
             div(x-data="game()", x-init=`init(${player ? !!player.game : false})`)
@@ -48,8 +58,12 @@ html
                             h4 Players in Lobby
                             template(x-for="item in players" :key="item")
                                 div(x-text="item.username" :class="{ 'border border-primary': item.isThisPlayer }")
+                    button(class="btn btn-success m-2" x-show="player.isAdmin && players.length >= 2" @click="startGame()") Start
+                    div(class="tooltip-wrapper disabled" title="Not enough players (at least 2 required)" x-show="player.isAdmin && players.length < 2")
+                        button(class="btn btn-success m-2" disabled) Start
+                    div(class="tooltip-wrapper disabled" title="You are not the admin of the game" x-show="!player.isAdmin")
+                        button(class="btn btn-success m-2" disabled) Start
                     button(class="btn btn-danger m-2" @click="leaveGame()") Leave
-                    button(class="btn btn-success m-2" x-show="player.isAdmin" @click="startGame()") Start
                 div(x-show="gameState === 'ingame'")
                     div(class="m-4")
                     div(class="text-center")

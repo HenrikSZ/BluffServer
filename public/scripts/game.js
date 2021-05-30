@@ -1,7 +1,6 @@
 function getCookieValue(cookieKey) {
     let regex = new RegExp('^.*;?\s*' + cookieKey + 's*=\s*([^;]+).*?$', 'g')
     let regexResult = regex.exec(document.cookie)
-    console.log(regexResult)
     return regexResult ? regexResult[1] : null
 }
 

@@ -228,6 +228,10 @@ class GameController {
             throw new Error('Player not admin of this game')
         }
 
+        if (socket.player.game.players.length < 2) {
+            throw new Error('Not enough players')
+        }
+
         this.logger.info(`game.game.start[${socket.player.game.inviteCode}]`)
 
         // TODO
