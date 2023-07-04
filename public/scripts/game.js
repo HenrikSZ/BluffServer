@@ -1,3 +1,16 @@
+window.onload = function() {
+    window.i18next
+        .use(window.i18nextHttpBackend)
+        .use(window.i18nextBrowserLanguageDetector)
+        .init({
+            preload: ['en', 'de'],
+            initImmediate: false,
+            backend: {
+                loadPath: '/locales/{{lng}}.json'
+            }
+        })
+}
+
 function getCookieValue(cookieKey) {
     let regex = new RegExp('^.*;?\s*' + cookieKey + 's*=\s*([^;]+).*?$', 'g')
     let regexResult = regex.exec(document.cookie)
@@ -45,7 +58,7 @@ class Button {
 
 class NextRoundButton extends Button {
     constructor(x, y, board, ctx) {
-        super(x, y, 'Weiter', ctx)
+        super(x, y, window.i18next.t("next"), ctx)
 
         this.board = board
     }
@@ -75,7 +88,7 @@ class NextRoundButton extends Button {
 
 class LieButton extends Button {
     constructor(x, y, board, ctx) {
-        super(x, y, 'Aufdecken', ctx)
+        super(x, y, window.i18next.t("reveal"), ctx)
 
         this.board = board
     }
@@ -108,7 +121,7 @@ class LieButton extends Button {
 
 class NextGameButton extends Button {
     constructor(x, y, board, ctx) {
-        super(x, y, 'Nächstes Spiel', ctx)
+        super(x, y, window.i18next.t("next-game"), ctx)
 
         this.board = board
     }
@@ -609,8 +622,8 @@ class Player {
         this.dicesImage = dicesImage
         this.crossImage = crossImage
 
-        this.currentTurnTextX = x - ctx.measureText('current turn').width / 2
-        this.winnerTextX = x - ctx.measureText('Winner').width / 2
+        this.currentTurnTextX = x - ctx.measureText(window.i18next.t("current-turn")).width / 2
+        this.winnerTextX = x - ctx.measureText(window.i18next.t("winner")).width / 2
         this.nameX = x - ctx.measureText(playerData.username).width / 2
     }
 
@@ -647,7 +660,7 @@ class Player {
 
         ctx.fillStyle = '#0720b0'
         ctx.textBaseline = 'middle'
-        ctx.fillText('current turn', this.currentTurnTextX, this.y + 25 + 15)
+        ctx.fillText(window.i18next.t("current-turn"), this.currentTurnTextX, this.y + 25 + 15)
     }
 
     drawWinner(ctx) {
@@ -661,7 +674,7 @@ class Player {
 
         ctx.fillStyle = '#096b21'
         ctx.textBaseline = 'middle'
-        ctx.fillText('Winner', this.winnerTextX, this.y + 25 + 15)
+        ctx.fillText(window.i18next.t("winner"), this.winnerTextX, this.y + 25 + 15)
     }
 
     drawConnected(ctx) {

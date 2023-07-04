@@ -4,6 +4,9 @@ const http = require('http')
 const cookieParser = require('cookie-parser')
 const path = require('path')
 const promisify = require('util').promisify
+const i18next = require('i18next')
+const i18nMiddleware = require('i18next-http-middleware')
+const backend = require('i18next-fs-backend')
 
 const winston = require('winston')
 
@@ -56,6 +59,7 @@ function setupRoutes(app, gameController) {
     app.set('view engine', 'pug')
     app.use(express.json())
     app.use(cookieParser())
+    app.use(i18nMiddleware.handle(i18next, { removeLngFromUrl: false }))
 
     app.use((req, res, next) => {
         req.player = gameController.playerManager.getFromToken(req.cookies.token)
@@ -66,6 +70,7 @@ function setupRoutes(app, gameController) {
     })
     
     app.get('/', (req, res) => {
+        console.log(req.languages)  
         res.render('game', { player: req.player })
     })
     
@@ -116,6 +121,17 @@ function setupSocketIO(io, gameController) {
         })
     })
 }
+
+i18next
+.use(i18nMiddleware.LanguageDetector)
+.use(backend)
+.init({
+    preload: ['en', 'de'],
+    initImmediate: false,
+    backend: {
+        loadPath: './public/locales/{{lng}}.json'
+    }
+})
 
 const app = express()
 const server = http.createServer(app)
