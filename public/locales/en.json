@@ -7,5 +7,10 @@
     "back": "back",
     "players-lobby": "Players in Lobby",
     "leave": "Leave",
-    "start": "Start"
+    "start": "Start",
+    "next": "Next",
+    "reveal": "Reveal",
+    "next-game": "Next Game",
+    "current-turn": "Current Turn",
+    "winner": "Winner"
 }

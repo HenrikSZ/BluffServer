@@ -7,5 +7,10 @@
     "back": "Zurück",
     "players-lobby": "Spieler in der Lobby",
     "leave": "Verlassen",
-    "start": "Start"
+    "start": "Start",
+    "next": "Weiter",
+    "reveal": "Aufdecken",
+    "next-game": "Nächstes Spiel",
+    "current-turn": "Spielt Gerade",
+    "winner": "Sieger"
 }
