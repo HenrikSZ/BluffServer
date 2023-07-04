@@ -1,6 +1,6 @@
 {
   "name": "bluffserver",
-  "version": "2.0.0",
+  "version": "0.1.0",
   "description": "This is a program dedicated to my brother woh had the idea to digitalize one our most favorite board games.",
   "main": "app.js",
   "scripts": {
