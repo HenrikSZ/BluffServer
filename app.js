@@ -126,7 +126,7 @@ i18next
 .use(i18nMiddleware.LanguageDetector)
 .use(backend)
 .init({
-    preload: ['en', 'de'],
+    preload: ['en', 'de', 'pt'],
     initImmediate: false,
     backend: {
         loadPath: './public/locales/{{lng}}.json'

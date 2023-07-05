@@ -3,7 +3,7 @@ window.onload = function() {
         .use(window.i18nextHttpBackend)
         .use(window.i18nextBrowserLanguageDetector)
         .init({
-            preload: ['en', 'de'],
+            preload: ['en', 'de', 'pt'],
             initImmediate: false,
             backend: {
                 loadPath: '/locales/{{lng}}.json'
