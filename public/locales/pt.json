@@ -1,0 +1,16 @@
+{
+    "create-or-join": "Criar ou Entrar em um Jogo",
+    "set-nickname": "Escolha Seu Apelido",
+    "cookie-warning": "Ao escolher Criar ou Entrar em um Jogo, você permite que o jogo use cookies no browser",
+    "create-game": "Criar Jogo",
+    "join-game": "Entrar em um Jogo",
+    "back": "Voltar",
+    "players-lobby": "Jogadores na Sala de Espera",
+    "leave": "Sair",
+    "start": "Começar",
+    "next": "Próximo",
+    "reveal": "Revelar",
+    "next-game": "Próximo Jogo",
+    "current-turn": "Jogada da Vez",
+    "winner": "Vencedor"
+}
