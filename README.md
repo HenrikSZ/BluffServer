@@ -2,6 +2,10 @@ This is a program dedicated to my brother who had the idea to digitalize one our
 
 ## Changelog
 
+### v0.1.2
+- Fixed join-game translation key issue
+- Fixed alpine key issue in lobby
+
 ### v0.1.1
 - Added Portuguese language support (Thanks to Ana Luísa)
 
