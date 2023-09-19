@@ -1,4 +1,4 @@
-This is a program dedicated to my brother who had the idea to digitalize one our most favorite board games.
+This is a project dedicated to my brother who had the idea to digitalize one our most favorite board games. It is most similar to the Liar's Dice game. Play the game [here](https://bluff.zi-data.com/).
 
 ## Changelog
 
